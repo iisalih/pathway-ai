@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Pathway AI dashboard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=DM+Sans:wght@400;500;700&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+html{scroll-behavior:smooth}
+a{color:inherit}
+button{font-family:inherit}
+[dir="rtl"] *{letter-spacing:0 !important}
+.btn{transition:transform .18s ease, box-shadow .18s ease, filter .18s ease, background-color .18s ease, color .18s ease, border-color .18s ease;cursor:pointer}
+.btn:hover{transform:translateY(-2px);filter:brightness(1.1);box-shadow:0 12px 24px -12px rgba(14,26,43,.55)}
+.btn:active{transform:translateY(0) scale(.97);filter:brightness(.95);box-shadow:none}
+.lift{transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease}
+.lift:hover{transform:translateY(-4px);box-shadow:0 20px 40px -26px rgba(14,26,43,.55)}
+[dir="rtl"] .flip{transform:scaleX(-1)}
+.tabbtn{transition:filter .15s ease, background-color .15s ease;cursor:pointer}
+.tabbtn:hover{filter:brightness(1.35)}
+.tabbtn:active{filter:brightness(1.1)}
+.row{transition:background-color .15s ease}
+.row:hover{background:#F2F5F8}
+.scroller{scroll-snap-type:x mandatory;scrollbar-width:thin}
+.scroller > *{scroll-snap-align:start}
+.app-side{position:sticky;top:0;align-self:flex-start;height:100vh;overflow-y:auto}
+a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px solid #2347D9;outline-offset:3px;border-radius:8px}
+.on-dark a:focus-visible,.on-dark button:focus-visible{outline-color:#F5B82E}
+@media (max-width:840px){.app-side{position:static !important;height:auto !important;flex-basis:100% !important}}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;scroll-behavior:auto !important}.btn:hover,.lift:hover{transform:none}}
+</style>
+</helmet>
+<div lang="{{lang}}" dir="{{dir}}" style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #F2F5F8; color: #0E1A2B; font-family: 'DM Sans', 'Cairo', system-ui, sans-serif; font-size: 17px; line-height: 1.5">
+
+<!-- STICKY SIDEBAR -->
+<aside class="app-side on-dark" style="flex: 1 1 272px; max-width: 100%; box-sizing: border-box; background: #0E1A2B; color: #D5DDEA; padding: 28px 20px; display: flex; flex-direction: column; gap: 28px">
+<a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #FFFFFF; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 700; font-size: 22px; padding: 0 8px">
+<svg aria-hidden="true" width="36" height="36" viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
+<span>Pathway AI</span>
+</a>
+
+<div role="tablist" aria-orientation="vertical" aria-label="{{t.tabsLabel}}" onKeyDown="{{ onTabKey }}" style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
+<button class="tabbtn" type="button" role="tab" id="{{ tb.tabId }}" aria-selected="{{ tb.selected }}" aria-controls="{{ tb.panelId }}" tabindex="{{ tb.tabIndex }}" onClick="{{ tb.go }}" style="display: flex; align-items: center; width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: {{ tb.bg }}; color: {{ tb.color }}; font-size: 17px; font-weight: 700; text-align: start">{{ tb.label }}</button>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p style="margin: 0 0 6px; padding: 0 14px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #B9C5D9">{{t.moreTools}}</p>
+<sc-for list="{{tools}}" as="tl" hint-placeholder-count="6">
+<button type="button" disabled style="display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent; color: #B9C5D9; font-size: 16px; text-align: start; cursor: not-allowed">
+<span>{{ tl.label }}</span>
+<span style="font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #22345A; color: #D5DDEA">{{ tl.soon }}</span>
+</button>
+</sc-for>
+</div>
+
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 14px">
+<div role="group" aria-label="{{t.langLabel}}" style="display: flex; padding: 3px; border-radius: 999px; background: #162744; gap: 2px">
+<button class="btn" type="button" lang="en" onClick="{{ setEn }}" aria-pressed="{{ enPressed }}" style="flex: 1 1 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 15px; font-weight: 700; background: {{ enBg }}; color: {{ enColor }}">English</button>
+<button class="btn" type="button" lang="ar" onClick="{{ setAr }}" aria-pressed="{{ arPressed }}" style="flex: 1 1 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 16px; font-weight: 700; background: {{ arBg }}; color: {{ arColor }}">العربية</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: #162744">
+<span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-weight: 700; display: flex; align-items: center; justify-content: center">{{t.avatar}}</span>
+<div style="display: flex; flex-direction: column"><span style="color: #FFFFFF; font-weight: 700">{{t.studentName}}</span><span style="font-size: 15px">{{t.grade}}</span></div>
+</div>
+</div>
+</aside>
+
+<!-- MAIN -->
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: clamp(24px, 3.5vw, 48px)">
+
+<!-- ============ TAB: MY PATHWAY ============ -->
+<sc-if value="{{ isPathway }}" hint-placeholder-val="{{ true }}">
+<section role="tabpanel" id="panel-pathway" aria-labelledby="tab-pathway" tabindex="0" style="display: flex; flex-direction: column; gap: 32px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.pathwayTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.pathwaySub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+
+<!-- YOUR NEXT BEST STEPS -->
+<section aria-labelledby="nbs-h" class="on-dark" style="background: #0E1A2B; color: #FFFFFF; border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="nbs-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.01em">{{t.nbsTitle}}</h2>
+<p style="margin: 0; color: #B9C5D9">{{t.nbsSub}}</p>
+</div>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="3">
+<li class="lift" style="background: #162744; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-weight: 800; display: flex; align-items: center; justify-content: center">{{ s.n }}</span>
+<h3 style="margin: 0; font-size: 19px; font-weight: 700; line-height: 1.35">{{ s.title }}</h3>
+<p style="margin: 0; font-size: 15px; color: #B9C5D9">{{ s.meta }}</p>
+<sc-if value="{{ s.isLink }}" hint-placeholder-val="{{ false }}">
+<a class="btn" href="{{ s.href }}" style="margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; min-height: 46px; padding: 0 22px; border-radius: 999px; background: #F5B82E; color: #0E1A2B; font-weight: 700; text-decoration: none">{{ s.action }}</a>
+</sc-if>
+<sc-if value="{{ s.isBtn }}" hint-placeholder-val="{{ false }}">
+<button class="btn" type="button" onClick="{{ s.go }}" style="margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: #F5B82E; color: #0E1A2B; font-size: 17px; font-weight: 700">{{ s.action }}</button>
+</sc-if>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<!-- stage tracker -->
+<section aria-label="{{t.stagesLabel}}" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); gap: 20px 16px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 8px; border-radius: 4px; background: #2347D9"></div>
+<div><div style="font-weight: 700">{{t.st1}}</div><div style="font-size: 15px; color: #3E4C63">{{t.stDone}}</div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 8px; border-radius: 4px; background: #D3DBE7; overflow: hidden"><div style="width: {{progressPct}}; height: 100%; background: #F5B82E; transition: width .4s ease"></div></div>
+<div><div style="font-weight: 700">{{t.st2}}</div><div style="font-size: 15px; color: #3E4C63">{{t.youAreHere}}</div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 8px; border-radius: 4px; background: #D3DBE7"></div>
+<div><div style="font-weight: 700">{{t.st3}}</div><div style="font-size: 15px; color: #3E4C63">{{t.upNext}}</div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 8px; border-radius: 4px; background: #D3DBE7"></div>
+<div><div style="font-weight: 700">{{t.st4}}</div><div style="font-size: 15px; color: #3E4C63">{{t.grade12}}</div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 8px; border-radius: 4px; background: #D3DBE7"></div>
+<div><div style="font-weight: 700">{{t.st5}}</div><div style="font-size: 15px; color: #3E4C63">{{t.afterOffer}}</div></div>
+</div>
+</section>
+
+<!-- RECOMMENDED FOR YOU -->
+<section aria-labelledby="rec-h" style="background: #E3EAF6; border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-direction: column; gap: 20px; min-width: 0">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="rec-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.01em">{{t.recTitle}}</h2>
+<p style="margin: 0; color: #3E4C63">{{t.recSub}}</p>
+</div>
+<div class="scroller" role="region" aria-label="{{t.recRegion}}" tabindex="0" style="display: flex; gap: 16px; overflow-x: auto; padding: 4px 4px 14px">
+<sc-for list="{{recs}}" as="r" hint-placeholder-count="5">
+<article class="lift" style="flex: 0 0 272px; box-sizing: border-box; background: #FFFFFF; border: 1px solid #D0DAEA; border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #1B37AE">{{ r.type }}</span>
+<h3 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 20px; font-weight: 700; line-height: 1.3">{{ r.title }}</h3>
+<p style="margin: 0; font-size: 15px; color: #3E4C63">{{ r.why }}</p>
+<button class="btn" type="button" onClick="{{ r.toggle }}" aria-pressed="{{ r.pressed }}" aria-label="{{ r.aria }}" style="margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid {{ r.border }}; background: {{ r.bg }}; color: {{ r.color }}; font-size: 16px; font-weight: 700">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="{{ r.fill }}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 2.5h8v11l-4-2.6-4 2.6z"/></svg>
+<span>{{ r.label }}</span>
+</button>
+</article>
+</sc-for>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 24px; align-items: start">
+
+<!-- checklist -->
+<section aria-labelledby="todo-h" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px">
+<h2 id="todo-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.01em">{{t.monthTitle}}</h2>
+<span style="font-size: 15px; font-weight: 700; color: #3E4C63">{{doneText}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{tasks}}" as="k" hint-placeholder-count="5">
+<button class="btn" type="button" onClick="{{ k.toggle }}" aria-pressed="{{ k.pressed }}" style="display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1px solid #D9E0E8; background: {{ k.rowBg }}; color: #0E1A2B; font-size: 17px; text-align: start">
+<span aria-hidden="true" style="flex: none; width: 26px; height: 26px; border-radius: 8px; box-sizing: border-box; border: 2px solid {{ k.boxBorder }}; background: {{ k.boxBg }}; display: flex; align-items: center; justify-content: center; transition: background-color .15s ease">
+<sc-if value="{{ k.done }}" hint-placeholder-val="{{ true }}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg></sc-if>
+</span>
+<span style="flex: 1 1 auto; text-decoration: {{ k.deco }}; color: {{ k.color }}">{{ k.label }}</span>
+</button>
+</sc-for>
+</div>
+</section>
+
+<div style="display: flex; flex-direction: column; gap: 24px">
+<section aria-labelledby="dir-h" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<h2 id="dir-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.01em">{{t.dirTitle}}</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<sc-for list="{{directions}}" as="d" hint-placeholder-count="3">
+<span style="padding: 10px 18px; border-radius: 999px; background: #E1E8FF; color: #1B37AE; font-weight: 700">{{ d.label }}</span>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="cp-h" style="background: #FFF6DC; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px">
+<h2 id="cp-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.01em">{{t.cpTitle}}</h2>
+<p style="margin: 0; color: #4A3A12">{{t.cpBody}}</p>
+<button class="btn" type="button" onClick="{{ goProfile }}" style="min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 17px; font-weight: 700">{{t.openProfile}}</button>
+</section>
+</div>
+</div>
+
+<!-- university matches -->
+<section aria-labelledby="uni-h" style="display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px">
+<h2 id="uni-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.01em">{{t.uniTitle}}</h2>
+<button class="btn" type="button" onClick="{{ goApps }}" style="min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid #0E1A2B; background: transparent; color: #0E1A2B; font-size: 16px; font-weight: 700">{{t.trackApps}}</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 20px">
+<sc-for list="{{unis}}" as="u" hint-placeholder-count="3">
+<article class="lift" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 14px; font-weight: 700; color: #3E4C63">{{ u.country }}</span>
+<h3 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 21px; font-weight: 700">{{ u.name }}</h3>
+<p style="margin: 0; color: #3E4C63">{{ u.program }}</p>
+<p style="margin: 8px 0 0; font-size: 15px; font-weight: 700; color: #0E1A2B">{{ u.fit }} <span style="font-weight: 400; color: #3E4C63">· {{ u.why }}</span></p>
+</article>
+</sc-for>
+</div>
+</section>
+
+<!-- expert help -->
+<section id="help" aria-label="{{t.helpLabel}}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 20px; scroll-margin-top: 24px">
+<div class="on-dark lift" style="background: #0E1A2B; color: #FFFFFF; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.tutorTitle}}</h2>
+<p style="margin: 0; color: #D5DDEA">{{t.tutorBody}}</p>
+<a class="btn" href="#help" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; background: #F5B82E; color: #0E1A2B; font-weight: 700; text-decoration: none">{{t.tutorCta}}</a>
+</div>
+<div class="lift" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.reviewTitle}}</h2>
+<p style="margin: 0; color: #3E4C63">{{t.reviewBody}}</p>
+<a class="btn" href="#help" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; background: #2347D9; color: #FFFFFF; font-weight: 700; text-decoration: none">{{t.reviewCta}}</a>
+</div>
+<div class="lift" style="background: #FFF6DC; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.postCardTitle}}</h2>
+<p style="margin: 0; color: #4A3A12">{{t.postCardBody}}</p>
+<button class="btn" type="button" onClick="{{ goPost }}" style="min-height: 48px; padding: 0 24px; border: 0; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 17px; font-weight: 700">{{t.postCardCta}}</button>
+</div>
+</section>
+
+<!-- postgraduate bar -->
+<section aria-labelledby="pg-h" style="background: #E3EAF6; border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px 32px">
+<div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<h2 id="pg-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pgTitle}}</h2>
+<span style="padding: 4px 12px; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 13px; font-weight: 700">{{t.pgBadge}}</span>
+</div>
+<p style="margin: 0; color: #3E4C63; max-width: 40em">{{t.pgBody}}</p>
+</div>
+<button class="btn" type="button" onClick="{{ toggleNotify }}" aria-pressed="{{ notifyPressed }}" style="min-height: 48px; padding: 0 24px; border-radius: 999px; border: 2px solid #0E1A2B; background: {{ notifyBg }}; color: {{ notifyColor }}; font-size: 16px; font-weight: 700">{{notifyLabel}}</button>
+</section>
+
+</section>
+</sc-if>
+
+<!-- ============ TAB: MY APPLICATIONS ============ -->
+<sc-if value="{{ isApps }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-apps" aria-labelledby="tab-apps" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.appsTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.appsSub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+
+<!-- website-window frame -->
+<div style="border: 1px solid #B7C4DA; border-radius: 20px; overflow: hidden; background: #FFFFFF; box-shadow: 0 30px 60px -36px rgba(14, 26, 43, 0.5)">
+<div aria-hidden="true" style="background: #D3DDEE; padding: 10px 16px 0; display: flex; align-items: flex-end; gap: 16px">
+<div style="display: flex; gap: 7px; padding-bottom: 14px">
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #E5736B"></span>
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #E8B84A"></span>
+<span style="width: 12px; height: 12px; border-radius: 50%; background: #5BB974"></span>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 9px 20px; border-radius: 12px 12px 0 0; background: #E9EEF7; font-size: 14px; font-weight: 700; color: #0E1A2B">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#2347D9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><path d="M5.5 8.5l2 2 3-4"/></svg>
+<span>{{t.appsTitle}}</span>
+</div>
+</div>
+<div aria-hidden="true" dir="ltr" style="background: #E9EEF7; padding: 10px 16px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #C9D5EA">
+<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#3E4C63" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8H3M7 4L3 8l4 4"/></svg>
+<svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#3E4C63" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: #FFFFFF; font-size: 14px; color: #3E4C63">
+<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#3E4C63" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>
+<span>pathway.ai/applications</span>
+</div>
+</div>
+
+<div style="padding: clamp(20px, 3vw, 32px); display: flex; flex-direction: column; gap: 24px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #3E4C63">{{t.nextDeadline}}</span>
+<span style="font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 26px; font-weight: 700">{{nextDate}} <span style="font-size: 18px; font-weight: 500; color: #3E4C63">· {{nextName}}</span></span>
+</div>
+<div role="group" aria-label="{{t.filterLabel}}" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{filters}}" as="fl" hint-placeholder-count="4">
+<button class="btn" type="button" onClick="{{ fl.go }}" aria-pressed="{{ fl.pressed }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid #0E1A2B; background: {{ fl.bg }}; color: {{ fl.color }}; font-size: 16px; font-weight: 700">{{ fl.label }}</button>
+</sc-for>
+</div>
+</div>
+
+<div role="region" aria-label="{{t.tableLabel}}" tabindex="0" style="overflow-x: auto; border: 1px solid #D9E0E8; border-radius: 14px">
+<div role="table" aria-label="{{t.tableLabel}}" style="min-width: 1000px">
+<div role="row" style="display: grid; grid-template-columns: minmax(240px, 2.2fr) 110px 140px 140px minmax(270px, 1.8fr); gap: 16px; padding: 12px 20px; background: #F2F5F8; border-bottom: 1px solid #D9E0E8; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #3E4C63">
+<span role="columnheader">{{t.colApp}}</span>
+<span role="columnheader">{{t.colType}}</span>
+<span role="columnheader">{{t.colDeadline}}</span>
+<span role="columnheader">{{t.colStatus}}</span>
+<span role="columnheader">{{t.colNext}}</span>
+</div>
+<sc-for list="{{rows}}" as="a" hint-placeholder-count="6">
+<div role="row" class="row" style="display: grid; grid-template-columns: minmax(240px, 2.2fr) 110px 140px 140px minmax(270px, 1.8fr); gap: 16px; padding: 16px 20px; align-items: center; border-bottom: 1px solid #E3EAF2">
+<span role="cell" style="font-weight: 700">{{ a.name }}</span>
+<span role="cell" style="font-size: 15px; color: #3E4C63">{{ a.type }}</span>
+<span role="cell" style="font-weight: 500">{{ a.date }}</span>
+<span role="cell"><span style="display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 14px; font-weight: 700; background: {{ a.chipBg }}; color: {{ a.chipColor }}">{{ a.status }}</span></span>
+<span role="cell"><button class="btn" type="button" aria-label="{{ a.nextAria }}" style="display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding-block: 0; padding-inline: 16px 8px; border-radius: 999px; border: 2px solid #0E1A2B; background: #FFFFFF; color: #0E1A2B; font-size: 15px; font-weight: 700; text-align: start"><span>{{ a.next }}</span><span aria-hidden="true" class="flip" style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #0E1A2B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></button></span>
+</div>
+</sc-for>
+</div>
+</div>
+
+<p style="margin: 0; font-size: 15px; color: #3E4C63">{{showing}} · {{t.dateNote}}</p>
+</div>
+</div>
+
+</section>
+</sc-if>
+
+<!-- ============ TAB: MY PROFILE ============ -->
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-profile" aria-labelledby="tab-profile" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
+
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.profileTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.profileSub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+
+<section aria-label="{{t.profileTitle}}" class="on-dark" style="background: #0E1A2B; color: #FFFFFF; border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 20px 24px">
+<span aria-hidden="true" style="flex: none; width: 88px; height: 88px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 40px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{t.avatar}}</span>
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 260px">
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 30px; font-weight: 700">{{t.studentName}}</h2>
+<p style="margin: 0; color: #D5DDEA">{{t.profileLine}}</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{interests}}" as="i" hint-placeholder-count="4">
+<span style="padding: 8px 16px; border-radius: 999px; background: #22345A; color: #FFFFFF; font-weight: 700; font-size: 15px">{{ i.label }}</span>
+</sc-for>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 24px; align-items: start">
+
+<section aria-labelledby="pf-about" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<h2 id="pf-about" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfAbout}}</h2>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{aboutRows}}" as="ab" hint-placeholder-count="5">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-bottom: 12px; border-bottom: 1px solid #E3EAF2">
+<dt style="color: #3E4C63">{{ ab.k }}</dt>
+<dd style="margin: 0; font-weight: 700">{{ ab.v }}</dd>
+</div>
+</sc-for>
+</dl>
+</section>
+
+<section aria-labelledby="pf-dest" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h2 id="pf-dest" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfDest}}</h2>
+<p style="margin: 0; font-size: 15px; color: #3E4C63">{{t.pfDestHint}}</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<sc-for list="{{dests}}" as="ds" hint-placeholder-count="6">
+<button class="btn" type="button" onClick="{{ ds.toggle }}" aria-pressed="{{ ds.pressed }}" style="min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid {{ ds.border }}; background: {{ ds.bg }}; color: {{ ds.color }}; font-size: 16px; font-weight: 700">{{ ds.label }}</button>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="pf-exams" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<h2 id="pf-exams" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfExams}}</h2>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{examRows}}" as="ex" hint-placeholder-count="2">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-bottom: 12px; border-bottom: 1px solid #E3EAF2">
+<dt style="font-weight: 700">{{ ex.k }}</dt>
+<dd style="margin: 0; color: #3E4C63">{{ ex.v }}</dd>
+</div>
+</sc-for>
+</dl>
+</section>
+
+<section aria-labelledby="pf-act" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<h2 id="pf-act" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfActivities}}</h2>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{activities}}" as="ac" hint-placeholder-count="3">
+<li style="display: flex; gap: 12px; align-items: baseline"><span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 50%; background: #F5B82E"></span><span>{{ ac.label }}</span></li>
+</sc-for>
+</ul>
+</section>
+
+</div>
+
+<section aria-labelledby="pf-todo" style="background: #FFF6DC; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="pf-todo" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.cpTitle}}</h2>
+<p style="margin: 0; color: #4A3A12">{{t.cpBody}}</p>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{todoProfile}}" as="tp" hint-placeholder-count="3">
+<li style="display: flex; gap: 12px; align-items: baseline"><span aria-hidden="true" style="flex: none; width: 14px; height: 14px; border-radius: 4px; border: 2px solid #8A6A1F; box-sizing: border-box"></span><span>{{ tp.label }}</span></li>
+</sc-for>
+</ul>
+</section>
+
+</section>
+</sc-if>
+
+<!-- ============ TAB: UNIVERSITIES ============ -->
+<sc-if value="{{ isUniversities }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-universities" aria-labelledby="tab-universities" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.uniPageTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.uniPageSub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div role="group" aria-label="{{t.countryFilter}}" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{uFilters}}" as="uf" hint-placeholder-count="6">
+<button class="btn" type="button" onClick="{{ uf.go }}" aria-pressed="{{ uf.pressed }}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid #0E1A2B; background: {{ uf.bg }}; color: {{ uf.color }}; font-size: 16px; font-weight: 700">{{ uf.label }}</button>
+</sc-for>
+</div>
+<span style="font-weight: 700; color: #3E4C63">{{shortlistText}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 20px">
+<sc-for list="{{uniCards}}" as="uc" hint-placeholder-count="6">
+<article class="lift" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 14px; font-weight: 700; color: #3E4C63">{{ uc.country }}</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 22px; font-weight: 700">{{ uc.name }}</h2>
+<p style="margin: 0; color: #3E4C63">{{ uc.program }}</p>
+<p style="margin: 6px 0 12px; font-size: 15px; font-weight: 700">{{ uc.fit }} <span style="font-weight: 400; color: #3E4C63">· {{ uc.why }}</span></p>
+<button class="btn" type="button" onClick="{{ uc.toggle }}" aria-pressed="{{ uc.pressed }}" aria-label="{{ uc.aria }}" style="margin-top: auto; align-self: flex-start; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid {{ uc.border }}; background: {{ uc.bg }}; color: {{ uc.color }}; font-size: 16px; font-weight: 700">{{ uc.label }}</button>
+</article>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<!-- ============ TAB: SCHOLARSHIPS ============ -->
+<sc-if value="{{ isScholarships }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-scholarships" aria-labelledby="tab-scholarships" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.schPageTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.schPageSub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 20px">
+<sc-for list="{{schCards}}" as="sc" hint-placeholder-count="4">
+<article class="lift" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 26px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-size: 14px; font-weight: 700; color: #3E4C63">{{ sc.country }} · {{ sc.type }}</span>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 22px; font-weight: 700; line-height: 1.3">{{ sc.name }}</h2>
+<p style="margin: 0; color: #3E4C63">{{ sc.deadlineLabel }} <strong style="color: #0E1A2B">{{ sc.date }}</strong></p>
+<p style="margin: 4px 0 12px; font-size: 15px; font-weight: 700">{{ sc.match }}</p>
+<button class="btn" type="button" onClick="{{ sc.toggle }}" aria-pressed="{{ sc.pressed }}" aria-label="{{ sc.aria }}" style="margin-top: auto; align-self: flex-start; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid {{ sc.border }}; background: {{ sc.bg }}; color: {{ sc.color }}; font-size: 16px; font-weight: 700">{{ sc.label }}</button>
+</article>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 15px; color: #3E4C63">{{t.schNote}}</p>
+</section>
+</sc-if>
+
+<!-- ============ TAB: EXAM PREP & TUTORS ============ -->
+<sc-if value="{{ isExams }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-exams" aria-labelledby="tab-exams" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.examPageTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.examPageSub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+<div role="group" aria-label="{{t.examPick}}" dir="ltr" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{examChips}}" as="ec" hint-placeholder-count="6">
+<button class="btn" type="button" onClick="{{ ec.go }}" aria-pressed="{{ ec.pressed }}" style="min-height: 44px; padding: 0 22px; border-radius: 999px; border: 2px solid #0E1A2B; background: {{ ec.bg }}; color: {{ ec.color }}; font-size: 16px; font-weight: 700">{{ ec.label }}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 24px; align-items: start">
+<section aria-labelledby="plan-h" style="background: #0E1A2B; color: #FFFFFF; border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<h2 id="plan-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 26px; font-weight: 700">{{planTitle}}</h2>
+<ol style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px">
+<sc-for list="{{planSteps}}" as="pl" hint-placeholder-count="3">
+<li style="display: flex; gap: 14px; align-items: flex-start">
+<span aria-hidden="true" style="flex: none; width: 32px; height: 32px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-weight: 800; display: flex; align-items: center; justify-content: center">{{ pl.n }}</span>
+<div><div style="font-weight: 700; font-size: 18px">{{ pl.title }}</div><div style="color: #B9C5D9; font-size: 16px">{{ pl.body }}</div></div>
+</li>
+</sc-for>
+</ol>
+</section>
+<section aria-labelledby="tut-h" style="display: flex; flex-direction: column; gap: 14px">
+<h2 id="tut-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 26px; font-weight: 700">{{tutorsTitle}}</h2>
+<sc-for list="{{tutorCards}}" as="tc" hint-placeholder-count="3">
+<article class="lift" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 18px; padding: 20px 22px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h3 style="margin: 0; font-size: 18px; font-weight: 700">{{ tc.title }}</h3>
+<p style="margin: 0; font-size: 15px; color: #3E4C63">{{ tc.langs }} · {{ tc.when }}</p>
+</div>
+<button class="btn" type="button" aria-label="{{ tc.aria }}" style="display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding-block: 0; padding-inline: 18px 8px; border-radius: 999px; border: 2px solid #0E1A2B; background: #FFFFFF; color: #0E1A2B; font-size: 15px; font-weight: 700"><span>{{t.viewProfile}}</span><span aria-hidden="true" class="flip" style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #0E1A2B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></button>
+</article>
+</sc-for>
+</section>
+</div>
+</section>
+</sc-if>
+
+<!-- ============ TAB: POST-ADMISSION SERVICES ============ -->
+<sc-if value="{{ isPost }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-post" aria-labelledby="tab-post" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
+<header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.postPageTitle}}</h1>
+<p style="margin: 0; color: #3E4C63">{{t.postPageSub}}</p>
+</div>
+<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+</header>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 20px">
+<sc-for list="{{postServices}}" as="ps" hint-placeholder-count="6">
+<article class="lift" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 26px; display: flex; flex-direction: column; gap: 12px">
+<div aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #FFF1C7; color: #5C3F00; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ps.d }}"/></svg></div>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 22px; font-weight: 700">{{ ps.title }}</h2>
+<p style="margin: 0; color: #3E4C63">{{ ps.body }}</p>
+<button class="btn" type="button" aria-label="{{ ps.aria }}" style="margin-top: auto; align-self: flex-start; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding-block: 0; padding-inline: 18px 8px; border-radius: 999px; border: 2px solid #0E1A2B; background: #FFFFFF; color: #0E1A2B; font-size: 15px; font-weight: 700"><span>{{t.getStarted}}</span><span aria-hidden="true" class="flip" style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #0E1A2B; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></button>
+</article>
+</sc-for>
+</div>
+<section aria-labelledby="arr-h" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px">
+<h2 id="arr-h" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.arrivalTitle}}</h2>
+<span style="font-size: 15px; font-weight: 700; color: #3E4C63">{{postDoneText}}</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 8px">
+<sc-for list="{{postTasks}}" as="pk" hint-placeholder-count="7">
+<button class="btn" type="button" onClick="{{ pk.toggle }}" aria-pressed="{{ pk.pressed }}" style="display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 10px 14px; border-radius: 14px; border: 1px solid #D9E0E8; background: {{ pk.rowBg }}; color: #0E1A2B; font-size: 17px; text-align: start">
+<span aria-hidden="true" style="flex: none; width: 26px; height: 26px; border-radius: 8px; box-sizing: border-box; border: 2px solid {{ pk.boxBorder }}; background: {{ pk.boxBg }}; display: flex; align-items: center; justify-content: center; transition: background-color .15s ease">
+<sc-if value="{{ pk.done }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg></sc-if>
+</span>
+<span style="flex: 1 1 auto; text-decoration: {{ pk.deco }}; color: {{ pk.color }}">{{ pk.label }}</span>
+</button>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 15px; color: #3E4C63">{{t.postNote}}</p>
+</section>
+</section>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    let lang = 'en';
+    try {
+      const v = localStorage.getItem('pathway-lang');
+      if (v === 'ar' || v === 'en') lang = v;
+    } catch (e) {}
+    this.state = {
+      lang,
+      tab: 'pathway',
+      filter: 'all',
+      done: { a: true, b: false, c: false, d: false, e: false },
+      saved: {},
+      dest: { ca: true, nl: true, au: true },
+      uFilter: 'all',
+      short: { u0: true },
+      track: {},
+      exam: 'sat',
+      post: {},
+      notify: false
+    };
+  }
+  pick(l) {
+    try { localStorage.setItem('pathway-lang', l); } catch (e) {}
+    this.setState({ lang: l });
+  }
+  setTab(id) {
+    this.setState({ tab: id });
+  }
+  renderVals() {
+    const ar = this.state.lang === 'ar';
+    const L = (en, a) => (ar ? a : en);
+    const S = this.state;
+
+    const fmt = (iso) => {
+      try {
+        return new Intl.DateTimeFormat(ar ? 'ar-AE-u-nu-latn' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso + 'T00:00:00'));
+      } catch (e) { return iso; }
+    };
+
+    const t = {
+      tabsLabel: L('Dashboard sections', 'أقسام لوحة التحكم'),
+      langLabel: L('Language', 'اللغة'),
+      moreTools: L('More tools', 'أدوات أخرى'),
+      avatar: L('S', 'ط'),
+      studentName: L('Sample student', 'طالب تجريبي'),
+      grade: L('Grade 11', 'الصف الحادي عشر'),
+      sampleData: L('Sample data', 'بيانات تجريبية'),
+
+      pathwayTitle: L('Your pathway', 'مسارك'),
+      pathwaySub: L('Stage 2 of 5: Build. Here’s what moves you forward this month.', 'المرحلة 2 من 5: البناء. هذا ما يقدّمك خلال هذا الشهر.'),
+      nbsTitle: L('Your next best steps', 'خطواتك التالية الأفضل'),
+      nbsSub: L('Ranked by what unlocks the most progress.', 'مرتّبة بحسب ما يحقق أكبر تقدّم.'),
+      stagesLabel: L('Pathway stages', 'مراحل المسار'),
+      st1: L('Explore', 'استكشف'), st2: L('Build', 'ابنِ'), st3: L('Prepare', 'استعد'), st4: L('Apply', 'قدّم'), st5: L('Arrive', 'الوصول'),
+      stDone: L('Done', 'تم'),
+      youAreHere: L('You are here', 'أنت هنا'),
+      upNext: L('Up next', 'التالي'),
+      grade12: L('Grade 12', 'الصف 12'),
+      afterOffer: L('After your offer', 'بعد القبول'),
+      recTitle: L('Recommended for you', 'موصى به لك'),
+      recSub: L('Based on your interests: biomedical engineering, product design and data science.', 'بناءً على اهتماماتك: الهندسة الطبية الحيوية وتصميم المنتجات وعلم البيانات.'),
+      recRegion: L('Recommendations, scroll sideways', 'التوصيات، مرّر جانبيًا'),
+      monthTitle: L('This month', 'هذا الشهر'),
+      dirTitle: L('Your directions', 'اتجاهاتك'),
+      cpTitle: L('Complete your profile', 'أكمل ملفك'),
+      cpBody: L('Three details that make your matches and recommendations more accurate.', 'ثلاث معلومات تجعل ترشيحاتك وتوصياتك أدق.'),
+      openProfile: L('Open my profile', 'افتح ملفي'),
+      uniTitle: L('Early university matches', 'ترشيحات الجامعات المبكرة'),
+      trackApps: L('Track my applications', 'تابع طلباتي'),
+      helpLabel: L('Expert help', 'مساعدة الخبراء'),
+      tutorTitle: L('Find an exam tutor', 'ابحث عن مدرّس اختبارات'),
+      tutorBody: L('SAT, IELTS, TOEFL, IB, AP and IGCSE.', 'SAT وIELTS وTOEFL وIB وAP وIGCSE.'),
+      tutorCta: L('Browse tutors', 'تصفّح المدرّسين'),
+      reviewTitle: L('Get an essay reviewed', 'احصل على مراجعة لمقالك'),
+      reviewBody: L('Personal statements, college essays and motivation letters.', 'البيانات الشخصية والمقالات الجامعية والرسائل الدافعية.'),
+      reviewCta: L('Find a reviewer', 'ابحث عن مراجع'),
+
+      appsTitle: L('My applications', 'طلباتي'),
+      appsSub: L('Every deadline for your shortlisted universities, scholarships and exams, in date order.', 'كل المواعيد النهائية لجامعاتك ومنحك واختباراتك المختارة، مرتّبة بحسب التاريخ.'),
+      nextDeadline: L('Next deadline', 'أقرب موعد نهائي'),
+      filterLabel: L('Filter applications', 'تصفية الطلبات'),
+      tableLabel: L('Applications and deadlines', 'الطلبات والمواعيد النهائية'),
+      colApp: L('Application', 'الطلب'), colType: L('Type', 'النوع'), colDeadline: L('Deadline', 'الموعد النهائي'), colStatus: L('Status', 'الحالة'), colNext: L('Next step', 'الخطوة التالية'),
+      dateNote: L('Sample dates. Always confirm deadlines on each university’s website.', 'التواريخ تجريبية. تأكد دائمًا من المواعيد في موقع كل جامعة.'),
+
+      profileTitle: L('My profile', 'ملفي'),
+      profileSub: L('Pathway AI uses this to match universities, scholarships and activities. Update it any time.', 'يستخدم Pathway AI هذه المعلومات لمطابقة الجامعات والمنح والأنشطة. يمكنك تحديثها في أي وقت.'),
+      profileLine: L('Grade 11 · [School name] · [Your country]', 'الصف الحادي عشر · [اسم المدرسة] · [بلدك]'),
+      pfAbout: L('About you', 'عنك'),
+      pfDest: L('Where would you like to study?', 'أين تريد أن تدرس؟'),
+      pfDestHint: L('Select every country you’d consider.', 'اختر كل بلد تفكّر فيه.'),
+      pfExams: L('Target exams', 'الاختبارات المستهدفة'),
+      pfActivities: L('Activities and achievements', 'الأنشطة والإنجازات'),
+
+      postCardTitle: L('After your offer', 'بعد القبول'),
+      postCardBody: L('Visa support, accommodation, health insurance and arrival planning.', 'دعم التأشيرة والسكن والتأمين الصحي وتخطيط الوصول.'),
+      postCardCta: L('Open post-admission services', 'افتح خدمات ما بعد القبول'),
+      pgTitle: L('Postgraduate pathway', 'مسار الدراسات العليا'),
+      pgBadge: L('Coming soon', 'قريبًا'),
+      pgBody: L('Master’s and PhD applicants will get the same guided path: program and funding search, supervisor outreach and statement review.', 'سيحصل المتقدمون للماجستير والدكتوراه على المسار الموجّه نفسه: البحث عن البرامج والتمويل، والتواصل مع المشرفين، ومراجعة البيانات الشخصية.'),
+
+      uniPageTitle: L('Universities', 'الجامعات'),
+      uniPageSub: L('Programs matched to your directions, grades and preferred countries.', 'برامج مطابقة لاتجاهاتك ودرجاتك والبلدان التي تفضّلها.'),
+      countryFilter: L('Filter by country', 'تصفية حسب البلد'),
+      schPageTitle: L('Scholarships', 'المنح الدراسية'),
+      schPageSub: L('Funding that fits your profile, with deadlines in one place.', 'تمويل يناسب ملفك، مع المواعيد النهائية في مكان واحد.'),
+      schNote: L('Sample listings. Always check eligibility and deadlines with the scholarship provider.', 'قوائم تجريبية. تحقق دائمًا من الأهلية والمواعيد لدى الجهة المانحة.'),
+      examPageTitle: L('Exam prep & tutors', 'الاختبارات والمدرّسون'),
+      examPageSub: L('Pick an exam, follow a study plan and find a qualified tutor.', 'اختر اختبارًا، واتبع خطة دراسة، واعثر على مدرّس مؤهل.'),
+      examPick: L('Choose an exam', 'اختر اختبارًا'),
+      viewProfile: L('View profile', 'عرض الملف'),
+      postPageTitle: L('Post-admission services', 'خدمات ما بعد القبول'),
+      postPageSub: L('Everything between your offer and your first week on campus.', 'كل ما بين قبولك وأسبوعك الأول في الجامعة.'),
+      getStarted: L('Get started', 'ابدأ'),
+      arrivalTitle: L('Your arrival checklist', 'قائمة تحقق الوصول'),
+      postNote: L('Requirements differ by country and university. Always confirm with official sources.', 'تختلف المتطلبات بحسب البلد والجامعة. تأكد دائمًا من المصادر الرسمية.')
+    };
+
+    // tabs
+    const tabDefs = [
+      ['pathway', L('My pathway', 'مساري')],
+      ['apps', L('My applications', 'طلباتي')],
+      ['profile', L('My profile', 'ملفي')],
+      ['universities', L('Universities', 'الجامعات')],
+      ['scholarships', L('Scholarships', 'المنح الدراسية')],
+      ['exams', L('Exam prep & tutors', 'الاختبارات والمدرّسون')],
+      ['post', L('Post-admission services', 'خدمات ما بعد القبول')]
+    ];
+    const tabs = tabDefs.map(([id, label]) => {
+      const sel = S.tab === id;
+      return {
+        label,
+        tabId: 'tab-' + id,
+        panelId: 'panel-' + id,
+        selected: sel ? 'true' : 'false',
+        tabIndex: sel ? 0 : -1,
+        bg: sel ? '#22345A' : 'transparent',
+        color: sel ? '#FFFFFF' : '#D5DDEA',
+        go: () => this.setTab(id)
+      };
+    });
+    const tabIds = tabDefs.map((d) => d[0]);
+    const onTabKey = (e) => {
+      const i = tabIds.indexOf(this.state.tab);
+      let n = i;
+      if (e.key === 'ArrowDown') n = (i + 1) % tabIds.length;
+      else if (e.key === 'ArrowUp') n = (i + tabIds.length - 1) % tabIds.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = tabIds.length - 1;
+      else return;
+      e.preventDefault();
+      this.setTab(tabIds[n]);
+      setTimeout(() => {
+        try { const el = document.getElementById('tab-' + tabIds[n]); if (el) el.focus(); } catch (err) {}
+      }, 0);
+    };
+
+    const soon = L('Soon', 'قريبًا');
+    const tools = [
+      L('Discover careers', 'اكتشاف المهن'),
+      L('Essay review', 'مراجعة المقالات'),
+      L('Free resources', 'موارد مجانية'),
+      L('Postgraduate pathway', 'مسار الدراسات العليا')
+    ].map((label) => ({ label, soon }));
+
+    // next best steps
+    const steps = [
+      { n: '1', title: L('Book a first session with an IELTS tutor', 'احجز جلسة أولى مع مدرّس IELTS'), meta: L('Takes about 10 minutes', 'تستغرق نحو 10 دقائق'), action: L('Find a tutor', 'ابحث عن مدرّس'), isLink: true, isBtn: false, href: '#help' },
+      { n: '2', title: L('Review your upcoming deadlines', 'راجع مواعيدك النهائية القادمة'), meta: L('Takes about 5 minutes', 'تستغرق نحو 5 دقائق'), action: L('Open my applications', 'افتح طلباتي'), isLink: false, isBtn: true, go: () => this.setTab('apps') },
+      { n: '3', title: L('Add your predicted grades to your profile', 'أضف درجاتك المتوقعة إلى ملفك'), meta: L('Improves your university matches', 'تحسّن ترشيحات جامعاتك'), action: L('Open my profile', 'افتح ملفي'), isLink: false, isBtn: true, go: () => this.setTab('profile') }
+    ];
+
+    // recommended
+    const recDefs = [
+      ['rc1', L('Competition', 'مسابقة'), L('Regional science olympiad', 'أولمبياد العلوم الإقليمي'), L('Builds evidence for biomedical engineering.', 'يدعم اهتمامك بالهندسة الطبية الحيوية.')],
+      ['rc2', L('Hackathon', 'هاكاثون'), L('Health-tech weekend for students', 'هاكاثون التقنية الصحية للطلاب'), L('Combines code and design.', 'يجمع بين البرمجة والتصميم.')],
+      ['rc3', L('Certification', 'شهادة'), L('Introduction to Python', 'مدخل إلى بايثون'), L('A first step toward data science.', 'خطوة أولى نحو علم البيانات.')],
+      ['rc4', L('Internship', 'تدريب'), L('Summer lab placement', 'تدريب مخبري صيفي'), L('Hands-on biology experience.', 'خبرة عملية في الأحياء.')],
+      ['rc5', L('Tutor', 'مدرّس'), L('IELTS speaking coach', 'مدرّب IELTS للمحادثة'), L('Matches your target exam.', 'يناسب اختبارك المستهدف.')]
+    ];
+    const recs = recDefs.map(([id, type, title, why]) => {
+      const on = !!S.saved[id];
+      return {
+        type, title, why,
+        pressed: on ? 'true' : 'false',
+        label: on ? L('Saved', 'تم الحفظ') : L('Save', 'احفظ'),
+        aria: (on ? L('Saved: ', 'تم الحفظ: ') : L('Save: ', 'احفظ: ')) + title,
+        bg: on ? '#E1E8FF' : '#FFFFFF',
+        color: on ? '#1B37AE' : '#0E1A2B',
+        border: on ? '#1B37AE' : '#0E1A2B',
+        fill: on ? 'currentColor' : 'none',
+        toggle: () => this.setState({ saved: { ...this.state.saved, [id]: !this.state.saved[id] } })
+      };
+    });
+
+    // checklist
+    const labels = [
+      ['a', L('Finish the interest assessment', 'أكمل تقييم الاهتمامات')],
+      ['b', L('Pick one competition to enter', 'اختر مسابقة واحدة للمشاركة')],
+      ['c', L('Shortlist two summer courses', 'اختر دورتين صيفيتين')],
+      ['d', L('Take a diagnostic SAT or IELTS practice test', 'قدّم اختبار SAT أو IELTS تجريبيًا تشخيصيًا')],
+      ['e', L('Read the free guide: how admissions teams read a profile', 'اقرأ الدليل المجاني: كيف تقرأ لجان القبول ملفك')]
+    ];
+    const tasks = labels.map(([id, label]) => {
+      const isDone = !!S.done[id];
+      return {
+        label,
+        done: isDone,
+        pressed: isDone ? 'true' : 'false',
+        rowBg: isDone ? '#F2F5F8' : '#FFFFFF',
+        boxBg: isDone ? '#2347D9' : '#FFFFFF',
+        boxBorder: isDone ? '#2347D9' : '#7B8CA8',
+        deco: isDone ? 'line-through' : 'none',
+        color: isDone ? '#4A5870' : '#0E1A2B',
+        toggle: () => this.setState({ done: { ...this.state.done, [id]: !this.state.done[id] } })
+      };
+    });
+    const doneCount = tasks.filter((k) => k.done).length;
+    const doneText = ar ? `تم إنجاز ${doneCount} من ${tasks.length}` : `${doneCount} of ${tasks.length} done`;
+
+    const directions = [L('Biomedical engineering', 'الهندسة الطبية الحيوية'), L('Product design', 'تصميم المنتجات'), L('Data science', 'علم البيانات')].map((label) => ({ label }));
+
+    const unis = [
+      { country: L('Canada', 'كندا'), name: L('University of Toronto', 'جامعة تورنتو'), program: L('Biomedical engineering', 'الهندسة الطبية الحيوية'), fit: L('Strong fit', 'مناسبة جدًا'), why: L('matches biology and design', 'تناسب الأحياء والتصميم') },
+      { country: L('Netherlands', 'هولندا'), name: L('TU Delft', 'جامعة دلفت التقنية'), program: L('Industrial design engineering', 'هندسة التصميم الصناعي'), fit: L('Good fit', 'مناسبة'), why: L('matches product design', 'تناسب تصميم المنتجات') },
+      { country: L('Australia', 'أستراليا'), name: L('University of Melbourne', 'جامعة ملبورن'), program: L('Biomedicine', 'الطب الحيوي'), fit: L('Good fit', 'مناسبة'), why: L('scholarships to explore', 'منح يمكن استكشافها') }
+    ];
+
+    // applications
+    const types = { uni: L('University', 'جامعة'), sch: L('Scholarship', 'منحة'), exam: L('Exam', 'اختبار') };
+    const statuses = {
+      not: { label: L('Not started', 'لم يبدأ'), bg: '#E8ECF2', color: '#2D3A50' },
+      res: { label: L('Researching', 'قيد البحث'), bg: '#FFF1C7', color: '#5C3F00' },
+      plan: { label: L('Planned', 'مخطط له'), bg: '#E1E8FF', color: '#1B37AE' }
+    };
+    const appDefs = [
+      ['2027-02-05', 'exam', 'not', L('SAT registration', 'التسجيل في اختبار SAT'), L('Choose a test date', 'اختر موعد الاختبار')],
+      ['2027-04-20', 'exam', 'not', L('IELTS test booking', 'حجز اختبار IELTS'), L('Pick a test centre', 'اختر مركز الاختبار')],
+      ['2027-10-31', 'uni', 'res', L('University of Melbourne · Biomedicine', 'جامعة ملبورن · الطب الحيوي'), L('Check entry requirements', 'راجع شروط القبول')],
+      ['2027-12-01', 'sch', 'res', L('Merit scholarship (Toronto)', 'منحة التفوق (تورنتو)'), L('Read the eligibility rules', 'اقرأ شروط الأهلية')],
+      ['2028-01-15', 'uni', 'plan', L('University of Toronto · Biomedical engineering', 'جامعة تورنتو · الهندسة الطبية الحيوية'), L('Draft your personal statement', 'اكتب مسودة بيانك الشخصي')],
+      ['2028-01-15', 'uni', 'res', L('TU Delft · Industrial design engineering', 'جامعة دلفت التقنية · هندسة التصميم الصناعي'), L('Check portfolio requirements', 'راجع متطلبات ملف الأعمال')]
+    ];
+    const allRows = appDefs.map(([iso, kind, st, name, next]) => ({
+      kind, name, next, date: fmt(iso), nextAria: next + ' — ' + name,
+      type: types[kind], status: statuses[st].label, chipBg: statuses[st].bg, chipColor: statuses[st].color
+    }));
+    const rows = S.filter === 'all' ? allRows : allRows.filter((r) => r.kind === S.filter);
+    const filterDefs = [['all', L('All', 'الكل')], ['uni', L('Universities', 'الجامعات')], ['sch', L('Scholarships', 'المنح')], ['exam', L('Exams', 'الاختبارات')]];
+    const filters = filterDefs.map(([id, label]) => {
+      const on = S.filter === id;
+      return { label, pressed: on ? 'true' : 'false', bg: on ? '#0E1A2B' : 'transparent', color: on ? '#FFFFFF' : '#0E1A2B', go: () => this.setState({ filter: id }) };
+    });
+    const showing = ar ? `عرض ${rows.length} من ${allRows.length}` : `Showing ${rows.length} of ${allRows.length}`;
+
+    // profile
+    const interests = [L('Biology', 'الأحياء'), L('Design', 'التصميم'), L('Coding', 'البرمجة'), L('Robotics', 'الروبوتات')].map((label) => ({ label }));
+    const aboutRows = [
+      [L('Grade', 'الصف'), L('Grade 11', 'الصف الحادي عشر')],
+      [L('School', 'المدرسة'), L('[School name]', '[اسم المدرسة]')],
+      [L('Country', 'البلد'), L('[Your country]', '[بلدك]')],
+      [L('Curriculum', 'المنهج'), L('IB', 'البكالوريا الدولية (IB)')],
+      [L('Languages', 'اللغات'), L('English, Arabic', 'الإنجليزية، العربية')]
+    ].map(([k, v]) => ({ k, v }));
+    const destDefs = [
+      ['ca', L('Canada', 'كندا')], ['nl', L('Netherlands', 'هولندا')], ['au', L('Australia', 'أستراليا')],
+      ['uk', L('United Kingdom', 'المملكة المتحدة')], ['us', L('United States', 'الولايات المتحدة')], ['de', L('Germany', 'ألمانيا')]
+    ];
+    const dests = destDefs.map(([id, label]) => {
+      const on = !!S.dest[id];
+      return {
+        label, pressed: on ? 'true' : 'false',
+        bg: on ? '#2347D9' : '#FFFFFF', color: on ? '#FFFFFF' : '#0E1A2B', border: on ? '#2347D9' : '#7B8CA8',
+        toggle: () => this.setState({ dest: { ...this.state.dest, [id]: !this.state.dest[id] } })
+      };
+    });
+    const target = L('Target score: [add]', 'الدرجة المستهدفة: [أضف]');
+    const examRows = [{ k: 'SAT', v: target }, { k: 'IELTS', v: target }];
+    const activities = [L('Robotics club member', 'عضو في نادي الروبوتات'), L('School science fair finalist', 'متأهل إلى نهائي معرض العلوم المدرسي'), L('Volunteer peer tutor in biology', 'مدرّس أقران متطوع في الأحياء')].map((label) => ({ label }));
+    const todoProfile = [L('Add your predicted grades', 'أضف درجاتك المتوقعة'), L('Add target scores for SAT and IELTS', 'أضف الدرجات المستهدفة لاختباري SAT وIELTS'), L('Set a yearly tuition budget', 'حدّد ميزانية سنوية للرسوم الدراسية')].map((label) => ({ label }));
+
+    // universities
+    const uniAll = [
+      ['ca', L('Canada', 'كندا'), L('University of Toronto', 'جامعة تورنتو'), L('Biomedical engineering', 'الهندسة الطبية الحيوية'), L('Strong fit', 'مناسبة جدًا'), L('matches biology and design', 'تناسب الأحياء والتصميم')],
+      ['ca', L('Canada', 'كندا'), L('McGill University', 'جامعة ماكجيل'), L('Biochemistry', 'الكيمياء الحيوية'), L('Good fit', 'مناسبة'), L('strong life sciences', 'علوم حياة قوية')],
+      ['nl', L('Netherlands', 'هولندا'), L('TU Delft', 'جامعة دلفت التقنية'), L('Industrial design engineering', 'هندسة التصميم الصناعي'), L('Good fit', 'مناسبة'), L('matches product design', 'تناسب تصميم المنتجات')],
+      ['au', L('Australia', 'أستراليا'), L('University of Melbourne', 'جامعة ملبورن'), L('Biomedicine', 'الطب الحيوي'), L('Good fit', 'مناسبة'), L('scholarships to explore', 'منح يمكن استكشافها')],
+      ['uk', L('United Kingdom', 'المملكة المتحدة'), L('Imperial College London', 'إمبريال كوليدج لندن'), L('Bioengineering', 'الهندسة الحيوية'), L('Good fit', 'مناسبة'), L('matches biomedical interest', 'تناسب اهتمامك الطبي الحيوي')],
+      ['de', L('Germany', 'ألمانيا'), L('Technical University of Munich', 'جامعة ميونخ التقنية'), L('Informatics', 'المعلوماتية'), L('Good fit', 'مناسبة'), L('fits data science', 'تناسب علم البيانات')]
+    ];
+    const uniCards = uniAll.map((u, i) => ({ cc: u[0], id: 'u' + i, country: u[1], name: u[2], program: u[3], fit: u[4], why: u[5] }))
+      .filter((u) => S.uFilter === 'all' || u.cc === S.uFilter)
+      .map((u) => {
+        const on = !!S.short[u.id];
+        return {
+          ...u,
+          pressed: on ? 'true' : 'false',
+          label: on ? L('Shortlisted', 'في القائمة المختصرة') : L('Add to shortlist', 'أضف إلى القائمة المختصرة'),
+          aria: (on ? L('Shortlisted: ', 'في القائمة المختصرة: ') : L('Add to shortlist: ', 'أضف إلى القائمة المختصرة: ')) + u.name,
+          bg: on ? '#E1E8FF' : '#FFFFFF', color: on ? '#1B37AE' : '#0E1A2B', border: on ? '#1B37AE' : '#0E1A2B',
+          toggle: () => this.setState({ short: { ...this.state.short, [u.id]: !this.state.short[u.id] } })
+        };
+      });
+    const uFilters = [['all', L('All', 'الكل')]].concat(destDefs.filter((d) => ['ca', 'nl', 'au', 'uk', 'de'].includes(d[0]))).map(([id, label]) => {
+      const on = S.uFilter === id;
+      return { label, pressed: on ? 'true' : 'false', bg: on ? '#0E1A2B' : 'transparent', color: on ? '#FFFFFF' : '#0E1A2B', go: () => this.setState({ uFilter: id }) };
+    });
+    const shortCount = Object.keys(S.short).filter((k) => S.short[k]).length;
+    const shortlistText = ar ? `في القائمة المختصرة: ${shortCount}` : `Shortlisted: ${shortCount}`;
+
+    // scholarships
+    const schAll = [
+      ['s1', L('Merit scholarship (Toronto)', 'منحة التفوق (تورنتو)'), L('Canada', 'كندا'), L('Merit-based', 'قائمة على التفوق'), '2027-12-01', L('Strong match', 'ملاءمة قوية')],
+      ['s2', L('International scholarship (Netherlands)', 'منحة دولية (هولندا)'), L('Netherlands', 'هولندا'), L('Merit-based', 'قائمة على التفوق'), '2028-02-01', L('Good match', 'ملاءمة جيدة')],
+      ['s3', L('International undergraduate scholarship (Melbourne)', 'منحة دولية للبكالوريوس (ملبورن)'), L('Australia', 'أستراليا'), L('Merit and need', 'التفوق والحاجة'), '2027-10-31', L('Good match', 'ملاءمة جيدة')],
+      ['s4', L('Need-based bursary (UK)', 'منحة قائمة على الحاجة (المملكة المتحدة)'), L('United Kingdom', 'المملكة المتحدة'), L('Need-based', 'قائمة على الحاجة'), '2028-01-15', L('Possible match', 'ملاءمة محتملة')]
+    ];
+    const schCards = schAll.map(([id, name, country, type, iso, match]) => {
+      const on = !!S.track[id];
+      return {
+        name, country, type, match, date: fmt(iso), deadlineLabel: L('Deadline:', 'الموعد النهائي:'),
+        pressed: on ? 'true' : 'false',
+        label: on ? L('Tracking', 'قيد التتبّع') : L('Track this scholarship', 'تتبّع هذه المنحة'),
+        aria: (on ? L('Tracking: ', 'قيد التتبّع: ') : L('Track: ', 'تتبّع: ')) + name,
+        bg: on ? '#E1E8FF' : '#FFFFFF', color: on ? '#1B37AE' : '#0E1A2B', border: on ? '#1B37AE' : '#0E1A2B',
+        toggle: () => this.setState({ track: { ...this.state.track, [id]: !this.state.track[id] } })
+      };
+    });
+
+    // exam prep & tutors
+    const examIds = ['sat', 'ielts', 'toefl', 'ib', 'ap', 'igcse'];
+    const examChips = examIds.map((id) => {
+      const on = S.exam === id;
+      return { label: id.toUpperCase(), pressed: on ? 'true' : 'false', bg: on ? '#0E1A2B' : 'transparent', color: on ? '#FFFFFF' : '#0E1A2B', go: () => this.setState({ exam: id }) };
+    });
+    const EX = S.exam.toUpperCase();
+    const focusMap = {
+      sat: [L('Math', 'الرياضيات'), L('Reading and writing', 'القراءة والكتابة'), L('Full mock review', 'مراجعة اختبار تجريبي كامل')],
+      ielts: [L('Speaking', 'المحادثة'), L('Writing', 'الكتابة'), L('Listening and reading', 'الاستماع والقراءة')],
+      toefl: [L('Speaking', 'المحادثة'), L('Writing', 'الكتابة'), L('Integrated skills', 'المهارات المتكاملة')],
+      ib: [L('Maths', 'الرياضيات'), L('Sciences', 'العلوم'), L('Extended essay', 'المقال الموسّع')],
+      ap: [L('Calculus', 'التفاضل والتكامل'), L('Biology', 'الأحياء'), L('Essay-based subjects', 'المواد القائمة على المقالات')],
+      igcse: [L('Maths', 'الرياضيات'), L('Sciences', 'العلوم'), L('English', 'اللغة الإنجليزية')]
+    };
+    const whens = [L('Evening sessions', 'جلسات مسائية'), L('Weekend sessions', 'جلسات في عطلة نهاية الأسبوع'), L('Weekday afternoons', 'بعد ظهر أيام الأسبوع')];
+    const tutorCards = focusMap[S.exam].map((f, i) => ({
+      title: EX + ' · ' + f,
+      langs: L('English and Arabic', 'الإنجليزية والعربية'),
+      when: whens[i],
+      aria: L('View profile: ', 'عرض الملف: ') + EX + ' · ' + f
+    }));
+    const planTitle = ar ? `خطة الدراسة: ${EX}` : `Study plan: ${EX}`;
+    const tutorsTitle = ar ? `مدرّسو ${EX}` : `${EX} tutors`;
+    const planSteps = [
+      ['1', L('Take a diagnostic test', 'قدّم اختبارًا تشخيصيًا'), L('Find your starting score and weakest areas.', 'اعرف درجتك الحالية ونقاط ضعفك.')],
+      ['2', L('Practise every week', 'تدرّب كل أسبوع'), L('Short, focused sessions on the areas that move your score most.', 'جلسات قصيرة ومركّزة على المجالات الأكثر تأثيرًا في درجتك.')],
+      ['3', L('Sit a full mock exam', 'قدّم اختبارًا تجريبيًا كاملًا'), L('Test yourself under real conditions before exam day.', 'اختبر نفسك في ظروف حقيقية قبل يوم الاختبار.')]
+    ].map(([n, title, body]) => ({ n, title, body }));
+
+    // post-admission services
+    const postServices = [
+      ['M6 3h8l5 5v13H6zM14 3v5h5M9 14l2 2 4-4', L('Visa support', 'دعم التأشيرة'), L('Document checklists and step-by-step guidance for your destination.', 'قوائم المستندات وإرشادات خطوة بخطوة لوجهتك.')],
+      ['M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6', L('Accommodation', 'السكن'), L('Find student housing and understand your options before you land.', 'اعثر على سكن طلابي وافهم خياراتك قبل وصولك.')],
+      ['M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4', L('Health insurance', 'التأمين الصحي'), L('Compare cover that meets your university’s requirements.', 'قارن بين التغطيات التي تلبي متطلبات جامعتك.')],
+      ['M3 11l18-8-8 18-2-8z', L('Travel and flights', 'السفر والرحلات'), L('Flights, airport pickup and a first-week plan.', 'الرحلات الجوية والاستقبال في المطار وخطة للأسبوع الأول.')],
+      ['M12 3a6 6 0 016 6c0 4-6 12-6 12S6 13 6 9a6 6 0 016-6zM12 11a2 2 0 100-4 2 2 0 000 4z', L('Arrival and orientation', 'الوصول والتعريف بالجامعة'), L('Local tips, orientation dates and a map of what to do first.', 'نصائح محلية ومواعيد التعريف بالجامعة وخريطة لما تفعله أولًا.')],
+      ['M3 7h18v12H3zM3 11h18M7 15h3', L('Banking and phone', 'الخدمات المصرفية والاتصالات'), L('Open an account and get a local number without the guesswork.', 'افتح حسابًا واحصل على رقم محلي دون عناء.')]
+    ].map(([d, title, body]) => ({ d, title, body, aria: L('Get started: ', 'ابدأ: ') + title }));
+    const postLabels = [
+      ['p1', L('Accept your offer', 'اقبل عرض القبول')],
+      ['p2', L('Pay your deposit', 'ادفع الوديعة')],
+      ['p3', L('Apply for your visa', 'قدّم طلب التأشيرة')],
+      ['p4', L('Book accommodation', 'احجز السكن')],
+      ['p5', L('Buy health insurance', 'اشترِ التأمين الصحي')],
+      ['p6', L('Book your flights', 'احجز رحلاتك')],
+      ['p7', L('Attend orientation', 'احضر التعريف بالجامعة')]
+    ];
+    const postTasks = postLabels.map(([id, label]) => {
+      const isDone = !!S.post[id];
+      return {
+        label, done: isDone, pressed: isDone ? 'true' : 'false',
+        rowBg: isDone ? '#F2F5F8' : '#FFFFFF', boxBg: isDone ? '#2347D9' : '#FFFFFF', boxBorder: isDone ? '#2347D9' : '#7B8CA8',
+        deco: isDone ? 'line-through' : 'none', color: isDone ? '#4A5870' : '#0E1A2B',
+        toggle: () => this.setState({ post: { ...this.state.post, [id]: !this.state.post[id] } })
+      };
+    });
+    const postDone = postTasks.filter((k) => k.done).length;
+    const postDoneText = ar ? `تم إنجاز ${postDone} من ${postTasks.length}` : `${postDone} of ${postTasks.length} done`;
+
+    const notify = S.notify;
+
+    const nextRow = allRows[0];
+
+    return {
+      t, tabs, onTabKey, tools, steps, recs, tasks, doneText, directions, unis,
+      rows, filters, showing, interests, aboutRows, dests, examRows, activities, todoProfile,
+      nextDate: nextRow.date, nextName: nextRow.name,
+      uniCards, uFilters, shortlistText, schCards, examChips, tutorCards, planTitle, tutorsTitle, planSteps,
+      postServices, postTasks, postDoneText,
+      goPost: () => this.setTab('post'),
+      toggleNotify: () => this.setState({ notify: !this.state.notify }),
+      notifyPressed: notify ? 'true' : 'false',
+      notifyLabel: notify ? L('You’re on the list', 'تم تسجيلك في القائمة') : L('Notify me', 'أخبرني عند الإطلاق'),
+      notifyBg: notify ? '#0E1A2B' : 'transparent', notifyColor: notify ? '#FFFFFF' : '#0E1A2B',
+      isUniversities: S.tab === 'universities', isScholarships: S.tab === 'scholarships', isExams: S.tab === 'exams', isPost: S.tab === 'post',
+      progressPct: Math.round((doneCount / tasks.length) * 100) + '%',
+      isPathway: S.tab === 'pathway', isApps: S.tab === 'apps', isProfile: S.tab === 'profile',
+      goApps: () => this.setTab('apps'), goProfile: () => this.setTab('profile'),
+      lang: ar ? 'ar' : 'en', dir: ar ? 'rtl' : 'ltr',
+      setEn: () => this.pick('en'), setAr: () => this.pick('ar'),
+      enPressed: ar ? 'false' : 'true', arPressed: ar ? 'true' : 'false',
+      enBg: ar ? 'transparent' : '#F5B82E', enColor: ar ? '#D5DDEA' : '#0E1A2B',
+      arBg: ar ? '#F5B82E' : 'transparent', arColor: ar ? '#0E1A2B' : '#D5DDEA'
+    };
+  }
+}
+</script>
+</body>
+</html>
