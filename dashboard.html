@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Pathway AI dashboard</title>
+<script src="./config.js"></script>
 <script src="./support.js"></script>
 </head>
 <body>
@@ -25,6 +26,8 @@ button{font-family:inherit}
 .tabbtn{transition:filter .15s ease, background-color .15s ease;cursor:pointer}
 .tabbtn:hover{filter:brightness(1.35)}
 .tabbtn:active{filter:brightness(1.1)}
+.launcher{transition:transform .2s ease, box-shadow .2s ease}
+.launcher:hover{transform:scale(1.07);box-shadow:0 14px 30px -10px rgba(14,26,43,.6)}
 .row{transition:background-color .15s ease}
 .row:hover{background:#F2F5F8}
 .scroller{scroll-snap-type:x mandatory;scrollbar-width:thin}
@@ -37,17 +40,75 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 </style>
 </helmet>
 <div lang="{{lang}}" dir="{{dir}}" style="display: flex; flex-wrap: wrap; min-height: 100vh; background: #F2F5F8; color: #0E1A2B; font-family: 'DM Sans', 'Cairo', system-ui, sans-serif; font-size: 17px; line-height: 1.5">
+<sc-if value="{{ showAuth }}" hint-placeholder-val="{{ false }}">
+<div onKeyDown="{{ onAuthKey }}" style="flex: 1 1 100%; min-height: 100vh; display: flex; flex-wrap: wrap; background: #F2F5F8">
+<div class="on-dark" style="flex: 1 1 340px; background: #0E1A2B; color: #D5DDEA; padding: clamp(28px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: 32px; box-sizing: border-box">
+<a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #FFFFFF; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 700; font-size: 24px">
+<svg aria-hidden="true" width="40" height="40" viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
+<span>Pathway AI</span></a>
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 30em">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: clamp(34px, 4.4vw, 54px); line-height: 1.08; letter-spacing: -0.025em; color: #FFFFFF">{{ at.authTitle }}</h1>
+<p style="margin: 0; font-size: 19px">{{ at.authSub }}</p>
+</div>
+<div role="group" aria-label="{{t.langLabel}}" style="display: flex; padding: 3px; border-radius: 999px; background: #162744; gap: 2px; align-self: flex-start; width: min(280px, 100%)">
+<button class="btn" type="button" lang="en" onClick="{{ setEn }}" aria-pressed="{{ enPressed }}" style="flex: 1 1 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 15px; font-weight: 700; background: {{ enBg }}; color: {{ enColor }}">English</button>
+<button class="btn" type="button" lang="ar" onClick="{{ setAr }}" aria-pressed="{{ arPressed }}" style="flex: 1 1 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 16px; font-weight: 700; background: {{ arBg }}; color: {{ arColor }}">العربية</button>
+</div>
+</div>
+<main style="flex: 1.4 1 420px; padding: clamp(24px, 4vw, 56px); box-sizing: border-box; display: flex; justify-content: center; align-items: flex-start">
+<div style="width: min(720px, 100%); background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 24px; padding: clamp(20px, 3vw, 36px); display: flex; flex-direction: column; gap: 20px; box-sizing: border-box">
+<div role="group" aria-label="{{ at.authTitle }}" style="display: flex; padding: 3px; border-radius: 999px; background: #E8ECF2; gap: 2px; align-self: flex-start">
+<button class="btn" type="button" onClick="{{ goUp }}" aria-pressed="{{ upPressed }}" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 999px; font-size: 16px; font-weight: 700; background: {{ upBg }}; color: {{ upColor }}">{{ at.tabUp }}</button>
+<button class="btn" type="button" onClick="{{ goIn }}" aria-pressed="{{ inPressed }}" style="min-height: 44px; padding: 0 20px; border: 0; border-radius: 999px; font-size: 16px; font-weight: 700; background: {{ inBg }}; color: {{ inColor }}">{{ at.tabIn }}</button>
+</div>
+<sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}"><p role="alert" style="margin: 0; padding: 10px 14px; border-radius: 12px; background: #FDE2E2; color: #7F1D1D; font-weight: 700">{{ authErr }}</p></sc-if>
+<sc-if value="{{ isUp }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}name" style="font-weight: 700">{{ at.lName }}</label><input id="{{ af.pre }}name" type="text" autocomplete="name" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}email" style="font-weight: 700">{{ at.lEmail }}</label><input id="{{ af.pre }}email" type="email" autocomplete="email" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}nat" style="font-weight: 700">{{ at.lNat }}</label><input id="{{ af.pre }}nat" type="text" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}edu" style="font-weight: 700">{{ at.lEdu }}</label><select id="{{ af.pre }}edu" style="min-height: 48px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"><sc-for list="{{ af.eduOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}gpa" style="font-weight: 700">{{ at.lGpa }}</label><input id="{{ af.pre }}gpa" type="number" inputmode="decimal" min="0" max="4" step="0.01" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}ielts" style="font-weight: 700">{{ at.lIelts }}</label><input id="{{ af.pre }}ielts" type="number" inputmode="decimal" min="0" max="9" step="0.5" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}major" style="font-weight: 700">{{ at.lMajor }}</label><select id="{{ af.pre }}major" style="min-height: 48px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"><sc-for list="{{ af.majorOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ af.pre }}stage" style="font-weight: 700">{{ at.lStage }}</label><select id="{{ af.pre }}stage" style="min-height: 48px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"><sc-for list="{{ af.stageOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
+</div>
+<div role="group" aria-label="{{ at.lInterests }}" style="display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 700">{{ at.lInterests }}</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ af.ints }}" as="c" hint-placeholder-count="4"><button class="btn" type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ c.border }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; font-size: 16px; font-weight: 700">{{ c.label }}</button></sc-for></div></div>
+<div role="group" aria-label="{{ at.lCountries }}" style="display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 700">{{ at.lCountries }}</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ af.ctrs }}" as="c" hint-placeholder-count="3"><button class="btn" type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ c.border }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; font-size: 16px; font-weight: 700">{{ c.label }}</button></sc-for></div><span style="font-size: 14px; color: #3E4C63">{{ at.countryNote }}</span></div>
+<div role="group" aria-label="{{ at.lFunding }}" style="display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 700">{{ at.lFunding }}</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ af.funds }}" as="c" hint-placeholder-count="3"><button class="btn" type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ c.border }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; font-size: 16px; font-weight: 700">{{ c.label }}</button></sc-for></div></div>
+<button class="btn" type="button" onClick="{{ doSignUp }}" style="align-self: flex-start; min-height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 17px; font-weight: 700">{{ at.createBtn }}</button>
+<button class="btn" type="button" onClick="{{ doSample }}" style="align-self: flex-start; min-height: 46px; padding: 0 22px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 16px; font-weight: 700">{{ at.sampleBtn }}</button>
+</div>
+</sc-if>
+<sc-if value="{{ isIn }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 16px; max-width: 420px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="f-email2" style="font-weight: 700">{{ at.lEmail }}</label><input id="f-email2" type="email" autocomplete="email" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<button class="btn" type="button" onClick="{{ doSignIn }}" style="align-self: flex-start; min-height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 17px; font-weight: 700">{{ at.signInBtn }}</button>
+<button class="btn" type="button" onClick="{{ doSample }}" style="align-self: flex-start; min-height: 46px; padding: 0 22px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 16px; font-weight: 700">{{ at.sampleBtn }}</button>
+</div>
+</sc-if>
+<p style="margin: 0; font-size: 14px; color: #3E4C63">{{ at.signInNote }}</p>
+</div>
+</main>
+</div>
+</sc-if>
+<sc-if value="{{ showApp }}" hint-placeholder-val="{{ true }}">
 
 <!-- STICKY SIDEBAR -->
+<sc-if value="{{ sideOn }}" hint-placeholder-val="{{ true }}">
 <aside class="app-side on-dark" style="flex: 1 1 272px; max-width: 100%; box-sizing: border-box; background: #0E1A2B; color: #D5DDEA; padding: 28px 20px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
 <a href="index.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #FFFFFF; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 700; font-size: 22px; padding: 0 8px">
 <svg aria-hidden="true" width="36" height="36" viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
 <span>Pathway AI</span>
 </a>
+<button class="btn" type="button" onClick="{{ hideSide }}" aria-label="{{ at.hideMenu }}" title="{{ at.hideMenu }}" style="flex: none; width: 40px; height: 40px; border: 0; border-radius: 10px; background: #162744; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" class="flip" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+</div>
 
 <div role="tablist" aria-orientation="vertical" aria-label="{{t.tabsLabel}}" onKeyDown="{{ onTabKey }}" style="display: flex; flex-direction: column; gap: 4px">
 <sc-for list="{{tabs}}" as="tb" hint-placeholder-count="3">
-<button class="tabbtn" type="button" role="tab" id="{{ tb.tabId }}" aria-selected="{{ tb.selected }}" aria-controls="{{ tb.panelId }}" tabindex="{{ tb.tabIndex }}" onClick="{{ tb.go }}" style="display: flex; align-items: center; width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: {{ tb.bg }}; color: {{ tb.color }}; font-size: 17px; font-weight: 700; text-align: start">{{ tb.label }}</button>
+<button class="tabbtn" type="button" role="tab" id="{{ tb.tabId }}" aria-selected="{{ tb.selected }}" aria-controls="{{ tb.panelId }}" tabindex="{{ tb.tabIndex }}" onClick="{{ tb.go }}" style="display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: {{ tb.bg }}; color: {{ tb.color }}; font-size: 17px; font-weight: 700; text-align: start"><sc-if value="{{ tb.hasIcon }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="#F5B82E" style="flex: none"><path d="{{ tb.icon }}"/></svg></sc-if>{{ tb.label }}</button>
 </sc-for>
 </div>
 
@@ -66,15 +127,19 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 <button class="btn" type="button" lang="en" onClick="{{ setEn }}" aria-pressed="{{ enPressed }}" style="flex: 1 1 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 15px; font-weight: 700; background: {{ enBg }}; color: {{ enColor }}">English</button>
 <button class="btn" type="button" lang="ar" onClick="{{ setAr }}" aria-pressed="{{ arPressed }}" style="flex: 1 1 0; min-height: 44px; padding: 0 12px; border: 0; border-radius: 999px; font-size: 16px; font-weight: 700; background: {{ arBg }}; color: {{ arColor }}">العربية</button>
 </div>
-<div style="display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 14px; background: #162744">
+<button id="btn-profile" class="tabbtn" type="button" onClick="{{ goProfileBtn }}" aria-label="{{ at.openProfileLbl }}: {{t.studentName}}" aria-current="{{ profileSel }}" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; border: 0; border-radius: 14px; background: {{ profBg }}; color: #D5DDEA; text-align: start; font-size: 17px">
 <span aria-hidden="true" style="flex: none; width: 40px; height: 40px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-weight: 700; display: flex; align-items: center; justify-content: center">{{t.avatar}}</span>
-<div style="display: flex; flex-direction: column"><span style="color: #FFFFFF; font-weight: 700">{{t.studentName}}</span><span style="font-size: 15px">{{t.grade}}</span></div>
-</div>
+<span style="display: flex; flex-direction: column; min-width: 0"><span style="color: #FFFFFF; font-weight: 700; overflow: hidden; text-overflow: ellipsis">{{t.studentName}}</span><span style="font-size: 14px">{{ at.profHead }}</span></span>
+</button>
 </div>
 </aside>
+</sc-if>
 
 <!-- MAIN -->
-<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: clamp(24px, 3.5vw, 48px)">
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: clamp(24px, 3.5vw, 48px); padding-bottom: 96px">
+<sc-if value="{{ sideOff }}" hint-placeholder-val="{{ false }}">
+<div style="margin-bottom: 20px"><button class="btn" type="button" onClick="{{ showSide }}" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 16px; font-weight: 700"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>{{ at.showMenu }}</button></div>
+</sc-if>
 
 <!-- ============ TAB: MY PATHWAY ============ -->
 <sc-if value="{{ isPathway }}" hint-placeholder-val="{{ true }}">
@@ -113,26 +178,12 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 
 <!-- stage tracker -->
 <section aria-label="{{t.stagesLabel}}" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr)); gap: 20px 16px">
+<sc-for list="{{stageBars}}" as="sb" hint-placeholder-count="5">
 <div style="display: flex; flex-direction: column; gap: 10px">
-<div style="height: 8px; border-radius: 4px; background: #2347D9"></div>
-<div><div style="font-weight: 700">{{t.st1}}</div><div style="font-size: 15px; color: #3E4C63">{{t.stDone}}</div></div>
+<div style="height: 8px; border-radius: 4px; background: #D3DBE7; overflow: hidden"><div style="width: {{ sb.w }}; height: 100%; background: {{ sb.c }}; transition: width .4s ease"></div></div>
+<div><div style="font-weight: 700">{{ sb.name }}</div><div style="font-size: 15px; color: #3E4C63">{{ sb.sub }}</div></div>
 </div>
-<div style="display: flex; flex-direction: column; gap: 10px">
-<div style="height: 8px; border-radius: 4px; background: #D3DBE7; overflow: hidden"><div style="width: {{progressPct}}; height: 100%; background: #F5B82E; transition: width .4s ease"></div></div>
-<div><div style="font-weight: 700">{{t.st2}}</div><div style="font-size: 15px; color: #3E4C63">{{t.youAreHere}}</div></div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 10px">
-<div style="height: 8px; border-radius: 4px; background: #D3DBE7"></div>
-<div><div style="font-weight: 700">{{t.st3}}</div><div style="font-size: 15px; color: #3E4C63">{{t.upNext}}</div></div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 10px">
-<div style="height: 8px; border-radius: 4px; background: #D3DBE7"></div>
-<div><div style="font-weight: 700">{{t.st4}}</div><div style="font-size: 15px; color: #3E4C63">{{t.grade12}}</div></div>
-</div>
-<div style="display: flex; flex-direction: column; gap: 10px">
-<div style="height: 8px; border-radius: 4px; background: #D3DBE7"></div>
-<div><div style="font-weight: 700">{{t.st5}}</div><div style="font-size: 15px; color: #3E4C63">{{t.afterOffer}}</div></div>
-</div>
+</sc-for>
 </section>
 
 <!-- RECOMMENDED FOR YOU -->
@@ -316,96 +367,67 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 </div>
 
 <p style="margin: 0; font-size: 15px; color: #3E4C63">{{showing}} · {{t.dateNote}}</p>
+<sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; padding: 16px; border-radius: 14px; background: #FFF6DC; color: #4A3A12; font-weight: 700">{{t.noApps}}</p></sc-if>
 </div>
 </div>
 
 </section>
 </sc-if>
 
-<!-- ============ TAB: MY PROFILE ============ -->
+<!-- ============ MY PROFILE (opened from the sidebar profile button) ============ -->
 <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
-<section role="tabpanel" id="panel-profile" aria-labelledby="tab-profile" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
-
+<section role="region" id="panel-profile" aria-label="{{ at.profHead }}" tabindex="0" style="display: flex; flex-direction: column; gap: 28px">
 <header style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px; max-width: 40em">
-<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{t.profileTitle}}</h1>
-<p style="margin: 0; color: #3E4C63">{{t.profileSub}}</p>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 46px); line-height: 1.1; letter-spacing: -0.025em">{{ at.profHead }}</h1>
+<p style="margin: 0; color: #3E4C63">{{ at.profSub }}</p>
 </div>
-<span style="padding: 6px 14px; border-radius: 999px; background: #FFF1C7; color: #5C3F00; font-size: 14px; font-weight: 700">{{t.sampleData}}</span>
+<button class="btn" type="button" onClick="{{ doSignOut }}" style="min-height: 46px; padding: 0 22px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 16px; font-weight: 700">{{ at.signOut }}</button>
 </header>
-
-<section aria-label="{{t.profileTitle}}" class="on-dark" style="background: #0E1A2B; color: #FFFFFF; border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 20px 24px">
-<span aria-hidden="true" style="flex: none; width: 88px; height: 88px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 40px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{t.avatar}}</span>
+<section aria-label="{{ at.profHead }}" class="on-dark" style="background: #0E1A2B; color: #FFFFFF; border-radius: 24px; padding: clamp(22px, 3vw, 32px); display: flex; flex-wrap: wrap; align-items: center; gap: 20px 24px">
+<span aria-hidden="true" style="flex: none; width: 88px; height: 88px; border-radius: 50%; background: #F5B82E; color: #0E1A2B; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 40px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{ who.initial }}</span>
 <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 260px">
-<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 30px; font-weight: 700">{{t.studentName}}</h2>
-<p style="margin: 0; color: #D5DDEA">{{t.profileLine}}</p>
+<h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 30px; font-weight: 700">{{ who.name }}</h2>
+<p style="margin: 0; color: #D5DDEA">{{ who.email }}</p>
+<p style="margin: 0; color: #D5DDEA">{{ sumLine }}</p>
 </div>
-<div style="display: flex; flex-wrap: wrap; gap: 8px">
-<sc-for list="{{interests}}" as="i" hint-placeholder-count="4">
-<span style="padding: 8px 16px; border-radius: 999px; background: #22345A; color: #FFFFFF; font-weight: 700; font-size: 15px">{{ i.label }}</span>
-</sc-for>
-</div>
+<div style="min-width: 180px; display: flex; flex-direction: column; gap: 6px"><span style="font-weight: 700">{{ t.cpTitle }}: {{ pctDone }}</span><div style="height: 8px; border-radius: 4px; background: #22345A; overflow: hidden"><div style="width: {{ pctDone }}; height: 100%; background: #F5B82E"></div></div></div>
 </section>
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 24px; align-items: start">
-
-<section aria-labelledby="pf-about" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
-<h2 id="pf-about" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfAbout}}</h2>
-<dl style="margin: 0; display: flex; flex-direction: column; gap: 12px">
-<sc-for list="{{aboutRows}}" as="ab" hint-placeholder-count="5">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-bottom: 12px; border-bottom: 1px solid #E3EAF2">
-<dt style="color: #3E4C63">{{ ab.k }}</dt>
-<dd style="margin: 0; font-weight: 700">{{ ab.v }}</dd>
+<section aria-label="{{ at.profHead }}" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: clamp(20px, 3vw, 32px); display: flex; flex-direction: column; gap: 20px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}name" style="font-weight: 700">{{ at.lName }}</label><input id="{{ pf.pre }}name" type="text" autocomplete="name" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}email" style="font-weight: 700">{{ at.lEmail }}</label><input id="{{ pf.pre }}email" type="email" autocomplete="email" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}nat" style="font-weight: 700">{{ at.lNat }}</label><input id="{{ pf.pre }}nat" type="text" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}edu" style="font-weight: 700">{{ at.lEdu }}</label><select id="{{ pf.pre }}edu" style="min-height: 48px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"><sc-for list="{{ pf.eduOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}gpa" style="font-weight: 700">{{ at.lGpa }}</label><input id="{{ pf.pre }}gpa" type="number" inputmode="decimal" min="0" max="4" step="0.01" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}ielts" style="font-weight: 700">{{ at.lIelts }}</label><input id="{{ pf.pre }}ielts" type="number" inputmode="decimal" min="0" max="9" step="0.5" style="min-height: 48px; box-sizing: border-box; padding: 0 14px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}major" style="font-weight: 700">{{ at.lMajor }}</label><select id="{{ pf.pre }}major" style="min-height: 48px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"><sc-for list="{{ pf.majorOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="{{ pf.pre }}stage" style="font-weight: 700">{{ at.lStage }}</label><select id="{{ pf.pre }}stage" style="min-height: 48px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF"><sc-for list="{{ pf.stageOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.l }}</option></sc-for></select></div>
 </div>
-</sc-for>
-</dl>
+<div role="group" aria-label="{{ at.lInterests }}" style="display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 700">{{ at.lInterests }}</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ pf.ints }}" as="c" hint-placeholder-count="4"><button class="btn" type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ c.border }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; font-size: 16px; font-weight: 700">{{ c.label }}</button></sc-for></div></div>
+<div role="group" aria-label="{{ at.lCountries }}" style="display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 700">{{ at.lCountries }}</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ pf.ctrs }}" as="c" hint-placeholder-count="3"><button class="btn" type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ c.border }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; font-size: 16px; font-weight: 700">{{ c.label }}</button></sc-for></div><span style="font-size: 14px; color: #3E4C63">{{ at.countryNote }}</span></div>
+<div role="group" aria-label="{{ at.lFunding }}" style="display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 700">{{ at.lFunding }}</span><div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ pf.funds }}" as="c" hint-placeholder-count="3"><button class="btn" type="button" onClick="{{ c.go }}" aria-pressed="{{ c.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ c.border }}; border-radius: 999px; background: {{ c.bg }}; color: {{ c.color }}; font-size: 16px; font-weight: 700">{{ c.label }}</button></sc-for></div></div>
+<sc-if value="{{ hasProfileMsg }}" hint-placeholder-val="{{ false }}"><p role="status" style="margin: 0; padding: 10px 14px; border-radius: 12px; background: {{ profileMsgBg }}; color: {{ profileMsgColor }}; font-weight: 700">{{ profileMsg }}</p></sc-if>
+<button class="btn" type="button" onClick="{{ doSave }}" style="align-self: flex-start; min-height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: #2347D9; color: #FFFFFF; font-size: 17px; font-weight: 700">{{ at.saveBtn }}</button>
 </section>
-
-<section aria-labelledby="pf-dest" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
-<div style="display: flex; flex-direction: column; gap: 4px">
-<h2 id="pf-dest" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfDest}}</h2>
-<p style="margin: 0; font-size: 15px; color: #3E4C63">{{t.pfDestHint}}</p>
-</div>
-<div style="display: flex; flex-wrap: wrap; gap: 10px">
-<sc-for list="{{dests}}" as="ds" hint-placeholder-count="6">
-<button class="btn" type="button" onClick="{{ ds.toggle }}" aria-pressed="{{ ds.pressed }}" style="min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid {{ ds.border }}; background: {{ ds.bg }}; color: {{ ds.color }}; font-size: 16px; font-weight: 700">{{ ds.label }}</button>
-</sc-for>
-</div>
-</section>
-
-<section aria-labelledby="pf-exams" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
-<h2 id="pf-exams" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfExams}}</h2>
-<dl style="margin: 0; display: flex; flex-direction: column; gap: 12px">
-<sc-for list="{{examRows}}" as="ex" hint-placeholder-count="2">
-<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-bottom: 12px; border-bottom: 1px solid #E3EAF2">
-<dt style="font-weight: 700">{{ ex.k }}</dt>
-<dd style="margin: 0; color: #3E4C63">{{ ex.v }}</dd>
-</div>
-</sc-for>
-</dl>
-</section>
-
-<section aria-labelledby="pf-act" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
-<h2 id="pf-act" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.pfActivities}}</h2>
-<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
-<sc-for list="{{activities}}" as="ac" hint-placeholder-count="3">
-<li style="display: flex; gap: 12px; align-items: baseline"><span aria-hidden="true" style="flex: none; width: 8px; height: 8px; border-radius: 50%; background: #F5B82E"></span><span>{{ ac.label }}</span></li>
-</sc-for>
-</ul>
-</section>
-
-</div>
-
-<section aria-labelledby="pf-todo" style="background: #FFF6DC; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
-<h2 id="pf-todo" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{t.cpTitle}}</h2>
-<p style="margin: 0; color: #4A3A12">{{t.cpBody}}</p>
+<section aria-labelledby="pf-road" style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; padding: 28px; display: flex; flex-direction: column; gap: 14px">
+<h2 id="pf-road" style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{at.roadTitle}}</h2>
+<p style="margin: 0; color: #3E4C63">{{at.roadSub}}</p>
+<sc-if value="{{ hasRoad }}" hint-placeholder-val="{{ false }}">
 <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
-<sc-for list="{{todoProfile}}" as="tp" hint-placeholder-count="3">
-<li style="display: flex; gap: 12px; align-items: baseline"><span aria-hidden="true" style="flex: none; width: 14px; height: 14px; border-radius: 4px; border: 2px solid #8A6A1F; box-sizing: border-box"></span><span>{{ tp.label }}</span></li>
+<sc-for list="{{road}}" as="rd" hint-placeholder-count="2">
+<li style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; border-top: 1px solid #E8ECF2; padding-top: 10px">
+<div style="flex: 1 1 260px; min-width: 0"><span style="font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #E1E8FF; color: #1B37AE">{{ rd.type }}</span><div style="font-weight: 700; margin-top: 6px">{{ rd.title }}</div><div style="font-size: 15px; color: #3E4C63">{{ rd.rel }}</div></div>
+<button class="btn" type="button" onClick="{{ rd.rm }}" aria-label="{{ rd.aria }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 15px; font-weight: 700">{{ at.remove }}</button>
+</li>
 </sc-for>
 </ul>
+</sc-if>
+<sc-if value="{{ noRoad }}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0">{{ at.roadEmpty }}</p>
+<button class="btn" type="button" onClick="{{ askProf }}" style="align-self: flex-start; min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 16px; font-weight: 700">{{ at.roadCta }}</button>
+</sc-if>
 </section>
-
 </section>
 </sc-if>
 
@@ -434,6 +456,7 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 <h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 22px; font-weight: 700">{{ uc.name }}</h2>
 <p style="margin: 0; color: #3E4C63">{{ uc.program }}</p>
 <p style="margin: 6px 0 12px; font-size: 15px; font-weight: 700">{{ uc.fit }} <span style="font-weight: 400; color: #3E4C63">· {{ uc.why }}</span></p>
+<a href="{{ uc.href }}" target="_blank" rel="noopener noreferrer" style="align-self: flex-start; font-weight: 700; color: #1B37AE">{{ t.officialPage }}</a>
 <button class="btn" type="button" onClick="{{ uc.toggle }}" aria-pressed="{{ uc.pressed }}" aria-label="{{ uc.aria }}" style="margin-top: auto; align-self: flex-start; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid {{ uc.border }}; background: {{ uc.bg }}; color: {{ uc.color }}; font-size: 16px; font-weight: 700">{{ uc.label }}</button>
 </article>
 </sc-for>
@@ -457,7 +480,8 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 <span style="font-size: 14px; font-weight: 700; color: #3E4C63">{{ sc.country }} · {{ sc.type }}</span>
 <h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 22px; font-weight: 700; line-height: 1.3">{{ sc.name }}</h2>
 <p style="margin: 0; color: #3E4C63">{{ sc.deadlineLabel }} <strong style="color: #0E1A2B">{{ sc.date }}</strong></p>
-<p style="margin: 4px 0 12px; font-size: 15px; font-weight: 700">{{ sc.match }}</p>
+<p style="margin: 4px 0 4px; font-size: 15px; font-weight: 700">{{ sc.match }}</p>
+<a href="{{ sc.href }}" target="_blank" rel="noopener noreferrer" style="align-self: flex-start; margin-bottom: 8px; font-weight: 700; color: #1B37AE">{{ t.officialPage }}</a>
 <button class="btn" type="button" onClick="{{ sc.toggle }}" aria-pressed="{{ sc.pressed }}" aria-label="{{ sc.aria }}" style="margin-top: auto; align-self: flex-start; min-height: 44px; padding: 0 20px; border-radius: 999px; border: 2px solid {{ sc.border }}; background: {{ sc.bg }}; color: {{ sc.color }}; font-size: 16px; font-weight: 700">{{ sc.label }}</button>
 </article>
 </sc-for>
@@ -549,10 +573,323 @@ a:focus-visible,button:focus-visible,[tabindex="0"]:focus-visible{outline:3px so
 </section>
 </sc-if>
 
+<sc-if value="{{ isAssistant }}" hint-placeholder-val="{{ false }}">
+<section role="tabpanel" id="panel-assistant" aria-labelledby="tab-assistant" tabindex="0" style="display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: clamp(30px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em">{{ at.asTitle }}</h1>
+<p style="margin: 0; color: #3E4C63; max-width: 70ch">{{ at.asSub }}</p>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 20px; display: flex; flex-direction: column; height: min(780px, calc(100vh - 170px)); min-height: 480px; overflow: hidden">
+<div id="msgs-page" role="log" aria-live="polite" aria-label="{{ at.asTitle }}" tabindex="0" style="flex: 1 1 0; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<sc-for list="{{msgs}}" as="m" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; align-items: {{ m.align }}; gap: 8px">
+<sc-if value="{{ m.user }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 85%; background: #0E1A2B; color: #FFFFFF; border-radius: 18px 18px 4px 18px; padding: 10px 16px; font-size: 16px; line-height: 1.45"><span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{ at.you }}: </span>{{ m.text }}</div>
+</sc-if>
+<sc-if value="{{ m.bot }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 10px; align-items: flex-start; width: 100%; min-width: 0">
+<svg aria-hidden="true" width="30" height="30" viewBox="0 0 36 36" style="flex: none; margin-top: 2px"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
+<div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div aria-busy="{{ m.busy }}" style="align-self: flex-start; max-width: 100%; background: #E3EAF6; color: #0E1A2B; border-radius: 18px 18px 18px 4px; padding: 12px 16px; font-size: 16px; line-height: 1.5; white-space: pre-line; box-sizing: border-box"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{ at.asTitle }}: </span>{{ m.text }}</div>
+<sc-if value="{{ m.hasOptions }}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 10px">
+<sc-for list="{{ m.options }}" as="o" hint-placeholder-count="4">
+<button class="btn" type="button" onClick="{{ o.go }}" style="text-align: start; display: flex; flex-direction: column; gap: 4px; padding: 14px; border: 1.5px solid #0E1A2B; border-radius: 14px; background: #FFFFFF; color: #0E1A2B; font-size: 16px">
+<span style="display: flex; gap: 8px; align-items: center; font-weight: 700"><span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #F5B82E; display: flex; align-items: center; justify-content: center; font-size: 13px">{{ o.n }}</span>{{ o.label }}</span>
+<span style="font-size: 14px; color: #3E4C63">{{ o.desc }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ m.hasChips }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ m.chips }}" as="ch" hint-placeholder-count="4">
+<button class="btn" type="button" onClick="{{ ch.go }}" aria-label="{{ ch.aria }}" style="min-height: 44px; padding: 0 20px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 16px; font-weight: 700">{{ ch.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ m.hasCards }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{ m.cards }}" as="c" hint-placeholder-count="2">
+<article style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; color: #0E1A2B; min-width: 0; box-sizing: border-box">
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<span style="font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #E1E8FF; color: #1B37AE">{{ c.tag }}</span>
+<sc-if value="{{ c.hasChip }}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: {{ c.chipBg }}; color: {{ c.chipColor }}">{{ c.chip }}</span></sc-if>
+<span style="font-size: 12px; color: #3E4C63">{{ c.note }}</span>
+</div>
+<h4 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 18px; font-weight: 700; line-height: 1.3">{{ c.title }}</h4>
+<sc-if value="{{ c.hasSub }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 15px; color: #3E4C63">{{ c.sub }}</p></sc-if>
+<sc-if value="{{ c.hasWhy }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 15px; background: #F2F5F8; border-radius: 10px; padding: 10px 12px"><strong>{{ at.whyLabel }}</strong> {{ c.why }}</p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="2">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; font-size: 15px; border-top: 1px solid #E8ECF2; padding-top: 6px">
+<span style="color: #3E4C63">{{ r.k }}</span>
+<span style="display: inline-flex; gap: 8px; align-items: baseline; font-weight: 600; text-align: end">{{ r.v }}<sc-if value="{{ r.hasTag }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: {{ r.tagBg }}; color: {{ r.tagColor }}">{{ r.tagTxt }}</span></sc-if></span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ c.hasDeadline }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; font-weight: 700; background: #FFF1C7; color: #5C3F00; border-radius: 10px; padding: 8px 12px">{{ c.deadline }}</p></sc-if>
+<sc-if value="{{ c.hasDocs }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; color: #3E4C63"><strong>{{ at.docsLabel }}</strong> {{ c.docs }}</p></sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px">
+<sc-for list="{{ c.acts }}" as="a" hint-placeholder-count="3">
+<sc-if value="{{ a.isBtn }}" hint-placeholder-val="{{ true }}"><button class="btn" type="button" onClick="{{ a.go }}" aria-pressed="{{ a.pressed }}" aria-label="{{ a.aria }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ a.border }}; border-radius: 999px; background: {{ a.bg }}; color: {{ a.color }}; font-size: 15px; font-weight: 700">{{ a.label }}</button></sc-if>
+<sc-if value="{{ a.isLink }}" hint-placeholder-val="{{ false }}"><a class="btn" href="{{ a.href }}" target="_blank" rel="noopener noreferrer" aria-label="{{ a.aria }}" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none">{{ a.label }}</a></sc-if>
+</sc-for>
+</div>
+</article>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="border-top: 1px solid #E8ECF2; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px">
+<div role="group" aria-label="{{ at.sugLabel }}" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px">
+<sc-for list="{{ sugs }}" as="sg" hint-placeholder-count="5">
+<button class="btn" type="button" onClick="{{ sg.go }}" style="flex: none; min-height: 40px; padding: 0 14px; border: 1px solid #7B8CA8; border-radius: 999px; background: #F2F5F8; color: #0E1A2B; font-size: 14px; font-weight: 600; white-space: nowrap">{{ sg.label }}</button>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px">
+<input id="in-page" type="text" autocomplete="off" aria-label="{{ at.inputLabel }}" placeholder="{{ at.ph }}" onKeyDown="{{ keyPage }}" style="flex: 1 1 0; min-width: 0; min-height: 48px; box-sizing: border-box; padding: 0 16px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF">
+<button class="btn" type="button" onClick="{{ sendPage }}" style="min-height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: #2347D9; color: #FFFFFF; font-size: 16px; font-weight: 700">{{ at.send }}</button>
+</div>
+</div>
+</div>
+<p style="margin: 0; font-size: 14px; color: #3E4C63">{{ at.asProto }}</p>
+</section>
+</sc-if>
 </main>
+<sc-if value="{{ showLauncher }}" hint-placeholder-val="{{ true }}">
+<button class="launcher" type="button" onClick="{{ openFloat }}" aria-label="{{ at.launch }}" style="position: fixed; inset-inline-end: 20px; bottom: 20px; z-index: 40; width: 60px; height: 60px; padding: 0; border: 3px solid #FFFFFF; border-radius: 20px; background: #2347D9; box-shadow: 0 10px 24px -8px rgba(14,26,43,.55); cursor: pointer; display: flex; align-items: center; justify-content: center">
+<svg aria-hidden="true" width="40" height="40" viewBox="0 0 36 36"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
+</button>
+</sc-if>
+<sc-if value="{{ showWin }}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="{{ at.asTitle }}" style="position: fixed; inset-inline-end: 20px; bottom: 20px; z-index: 40; width: min(400px, calc(100vw - 24px)); height: {{ winH }}; background: #FFFFFF; border: 1px solid #B9C5D9; border-radius: 16px; box-shadow: 0 24px 60px -20px rgba(14,26,43,.6); display: flex; flex-direction: column; overflow: hidden; color: #0E1A2B">
+<div style="background: #0E1A2B; color: #FFFFFF; padding: 10px 12px; display: flex; align-items: center; gap: 10px" class="on-dark">
+<svg aria-hidden="true" width="30" height="30" viewBox="0 0 36 36" style="flex: none"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
+<div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; line-height: 1.25"><span style="font-weight: 700; font-size: 16px">{{ at.asTitle }}</span><span style="font-size: 12px; color: #B9C5D9">pathway.ai/assistant</span></div>
+<button class="btn" type="button" onClick="{{ minFloat }}" aria-label="{{ minLabel }}" style="flex: none; width: 36px; height: 36px; border: 0; border-radius: 10px; background: #22345A; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="{{ minIcon }}"/></svg></button>
+<button class="btn" type="button" onClick="{{ closeFloat }}" aria-label="{{ at.close }}" style="flex: none; width: 36px; height: 36px; border: 0; border-radius: 10px; background: #22345A; color: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+<sc-if value="{{ winOpen }}" hint-placeholder-val="{{ true }}">
+<div id="msgs-float" role="log" aria-live="polite" aria-label="{{ at.asTitle }}" tabindex="0" style="flex: 1 1 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 16px; background: #FFFFFF; font-size: 15px">
+<sc-for list="{{msgs}}" as="m" hint-placeholder-count="2">
+<div style="display: flex; flex-direction: column; align-items: {{ m.align }}; gap: 8px">
+<sc-if value="{{ m.user }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 85%; background: #0E1A2B; color: #FFFFFF; border-radius: 18px 18px 4px 18px; padding: 10px 16px; font-size: 16px; line-height: 1.45"><span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{ at.you }}: </span>{{ m.text }}</div>
+</sc-if>
+<sc-if value="{{ m.bot }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; gap: 10px; align-items: flex-start; width: 100%; min-width: 0">
+<svg aria-hidden="true" width="30" height="30" viewBox="0 0 36 36" style="flex: none; margin-top: 2px"><rect width="36" height="36" rx="10" fill="#2347D9"/><path d="M9 26 C 14 26, 13 12, 18 14 S 22 24, 27 10" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round"/><circle cx="9" cy="26" r="2.6" fill="#F5B82E"/><circle cx="27" cy="10" r="2.6" fill="#F5B82E"/></svg>
+<div style="flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div aria-busy="{{ m.busy }}" style="align-self: flex-start; max-width: 100%; background: #E3EAF6; color: #0E1A2B; border-radius: 18px 18px 18px 4px; padding: 12px 16px; font-size: 16px; line-height: 1.5; white-space: pre-line; box-sizing: border-box"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{ at.asTitle }}: </span>{{ m.text }}</div>
+<sc-if value="{{ m.hasOptions }}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 10px">
+<sc-for list="{{ m.options }}" as="o" hint-placeholder-count="4">
+<button class="btn" type="button" onClick="{{ o.go }}" style="text-align: start; display: flex; flex-direction: column; gap: 4px; padding: 14px; border: 1.5px solid #0E1A2B; border-radius: 14px; background: #FFFFFF; color: #0E1A2B; font-size: 16px">
+<span style="display: flex; gap: 8px; align-items: center; font-weight: 700"><span aria-hidden="true" style="flex: none; width: 24px; height: 24px; border-radius: 50%; background: #F5B82E; display: flex; align-items: center; justify-content: center; font-size: 13px">{{ o.n }}</span>{{ o.label }}</span>
+<span style="font-size: 14px; color: #3E4C63">{{ o.desc }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ m.hasChips }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ m.chips }}" as="ch" hint-placeholder-count="4">
+<button class="btn" type="button" onClick="{{ ch.go }}" aria-label="{{ ch.aria }}" style="min-height: 44px; padding: 0 20px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: #FFFFFF; color: #0E1A2B; font-size: 16px; font-weight: 700">{{ ch.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ m.hasCards }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{ m.cards }}" as="c" hint-placeholder-count="2">
+<article style="background: #FFFFFF; border: 1px solid #D9E0E8; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; color: #0E1A2B; min-width: 0; box-sizing: border-box">
+<div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+<span style="font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: #E1E8FF; color: #1B37AE">{{ c.tag }}</span>
+<sc-if value="{{ c.hasChip }}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: {{ c.chipBg }}; color: {{ c.chipColor }}">{{ c.chip }}</span></sc-if>
+<span style="font-size: 12px; color: #3E4C63">{{ c.note }}</span>
+</div>
+<h4 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 18px; font-weight: 700; line-height: 1.3">{{ c.title }}</h4>
+<sc-if value="{{ c.hasSub }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 15px; color: #3E4C63">{{ c.sub }}</p></sc-if>
+<sc-if value="{{ c.hasWhy }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 15px; background: #F2F5F8; border-radius: 10px; padding: 10px 12px"><strong>{{ at.whyLabel }}</strong> {{ c.why }}</p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{ c.rows }}" as="r" hint-placeholder-count="2">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; font-size: 15px; border-top: 1px solid #E8ECF2; padding-top: 6px">
+<span style="color: #3E4C63">{{ r.k }}</span>
+<span style="display: inline-flex; gap: 8px; align-items: baseline; font-weight: 600; text-align: end">{{ r.v }}<sc-if value="{{ r.hasTag }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: {{ r.tagBg }}; color: {{ r.tagColor }}">{{ r.tagTxt }}</span></sc-if></span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ c.hasDeadline }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; font-weight: 700; background: #FFF1C7; color: #5C3F00; border-radius: 10px; padding: 8px 12px">{{ c.deadline }}</p></sc-if>
+<sc-if value="{{ c.hasDocs }}" hint-placeholder-val="{{ false }}"><p style="margin: 0; font-size: 14px; color: #3E4C63"><strong>{{ at.docsLabel }}</strong> {{ c.docs }}</p></sc-if>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px">
+<sc-for list="{{ c.acts }}" as="a" hint-placeholder-count="3">
+<sc-if value="{{ a.isBtn }}" hint-placeholder-val="{{ true }}"><button class="btn" type="button" onClick="{{ a.go }}" aria-pressed="{{ a.pressed }}" aria-label="{{ a.aria }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid {{ a.border }}; border-radius: 999px; background: {{ a.bg }}; color: {{ a.color }}; font-size: 15px; font-weight: 700">{{ a.label }}</button></sc-if>
+<sc-if value="{{ a.isLink }}" hint-placeholder-val="{{ false }}"><a class="btn" href="{{ a.href }}" target="_blank" rel="noopener noreferrer" aria-label="{{ a.aria }}" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none">{{ a.label }}</a></sc-if>
+</sc-for>
+</div>
+</article>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<div style="border-top: 1px solid #E8ECF2; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px">
+<div role="group" aria-label="{{ at.sugLabel }}" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px">
+<sc-for list="{{ sugs }}" as="sg" hint-placeholder-count="5">
+<button class="btn" type="button" onClick="{{ sg.go }}" style="flex: none; min-height: 36px; padding: 0 12px; border: 1px solid #7B8CA8; border-radius: 999px; background: #F2F5F8; color: #0E1A2B; font-size: 13px; font-weight: 600; white-space: nowrap">{{ sg.label }}</button>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px">
+<input id="in-float" type="text" autocomplete="off" aria-label="{{ at.inputLabel }}" placeholder="{{ at.ph }}" onKeyDown="{{ keyFloat }}" style="flex: 1 1 0; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1.5px solid #7B8CA8; border-radius: 12px; font: inherit; font-size: 16px; color: #0E1A2B; background: #FFFFFF">
+<button class="btn" type="button" onClick="{{ sendFloat }}" style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; background: #2347D9; color: #FFFFFF; font-size: 15px; font-weight: 700">{{ at.send }}</button>
+</div>
+<button type="button" onClick="{{ goAssistantFull }}" style="align-self: flex-start; border: 0; background: transparent; color: #1B37AE; font-size: 14px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 4px 0">{{ at.fullPage }}</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ hasModal }}" hint-placeholder-val="{{ false }}">
+<div onKeyDown="{{ modal.onKey }}" style="position: fixed; inset: 0; z-index: 60; background: rgba(14,26,43,.6); display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box">
+<div role="dialog" aria-modal="true" aria-label="{{ modal.name }}" style="background: #FFFFFF; border-radius: 20px; width: min(520px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; color: #0E1A2B">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+<div><h2 style="margin: 0; font-family: 'Bricolage Grotesque', 'Cairo', system-ui, sans-serif; font-size: 24px; font-weight: 700">{{ modal.name }}</h2><p style="margin: 4px 0 0; color: #3E4C63">{{ modal.focus }}</p></div>
+<button id="modal-close" class="btn" type="button" onClick="{{ modal.closeIt }}" aria-label="{{ at.mClose }}" style="flex: none; width: 44px; height: 44px; border: 1.5px solid #0E1A2B; border-radius: 12px; background: #FFFFFF; color: #0E1A2B; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</div>
+<p style="margin: 0; font-size: 14px; font-weight: 700; background: #FFF1C7; color: #5C3F00; border-radius: 10px; padding: 8px 12px">{{ at.mSample }}</p>
+<sc-if value="{{ modal.isProfile }}" hint-placeholder-val="{{ true }}">
+<p style="margin: 0">{{ modal.bio }}</p>
+<button class="btn" type="button" onClick="{{ modal.toBook }}" style="align-self: flex-start; min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: #0E1A2B; color: #FFFFFF; font-size: 16px; font-weight: 700">{{ at.mBookTitle }}</button>
+</sc-if>
+<sc-if value="{{ modal.isBook }}" hint-placeholder-val="{{ false }}">
+<h3 style="margin: 0; font-size: 18px">{{ at.mBookTitle }}</h3>
+<p style="margin: 0; color: #3E4C63">{{ at.mBookNote }}</p>
+<div role="group" aria-label="{{ at.mSlots }}" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ modal.slots }}" as="sl" hint-placeholder-count="3">
+<button class="btn" type="button" onClick="{{ sl.go }}" aria-pressed="{{ sl.pressed }}" style="min-height: 44px; padding: 0 16px; border: 1.5px solid #0E1A2B; border-radius: 999px; background: {{ sl.bg }}; color: {{ sl.color }}; font-size: 15px; font-weight: 700">{{ sl.label }}</button>
+</sc-for>
+</div>
+<button class="btn" type="button" onClick="{{ modal.preview }}" style="align-self: flex-start; min-height: 46px; padding: 0 22px; border: 0; border-radius: 999px; background: #2347D9; color: #FFFFFF; font-size: 16px; font-weight: 700">{{ at.mBookBtn }}</button>
+<sc-if value="{{ modal.book }}" hint-placeholder-val="{{ false }}"><p role="status" style="margin: 0; font-weight: 700; background: #E3EAF6; border-radius: 10px; padding: 10px 12px">{{ at.mBookDone }}</p></sc-if>
+</sc-if>
+</div>
+</div>
+</sc-if>
+</sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2300}}'>
+const API_URL = (typeof window !== 'undefined' && window.PATHWAY_API) || '';
+const SPARK = 'M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9zM18.5 14l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z';
+const CHECKED = '31 Oct 2026';
+const CC = { de: ['Germany', 'ألمانيا'], ca: ['Canada', 'كندا'], ae: ['United Arab Emirates', 'الإمارات العربية المتحدة'] };
+const COV = { full: ['Fully funded', 'ممولة بالكامل'], partial: ['Partially funded', 'تمويل جزئي'], tuition: ['Tuition only', 'الرسوم الدراسية فقط'], verify: ['Amount to verify', 'المبلغ للتحقق'] };
+const RST = {
+  met: { l: ['Met', 'مستوفى'], bg: '#DDF3E4', c: '#14532D' },
+  verify: { l: ['To verify', 'للتحقق'], bg: '#FFF1C7', c: '#5C3F00' },
+  miss: { l: ['Not met', 'غير مستوفى'], bg: '#FDE2E2', c: '#7F1D1D' }
+};
+const INTERESTS = [['ai', 'Artificial intelligence', 'الذكاء الاصطناعي'], ['prog', 'Programming', 'البرمجة'], ['math', 'Mathematics', 'الرياضيات'], ['data', 'Data science', 'علم البيانات'], ['robo', 'Robotics', 'الروبوتات'], ['sec', 'Cybersecurity', 'الأمن السيبراني']];
+const EDU = [['hs-final', 'High school, final year', 'مرحلة ثانوية، السنة الأخيرة'], ['hs-grad', 'High school graduate', 'خريج مرحلة ثانوية'], ['gap', 'Gap year', 'سنة فاصلة'], ['other', 'Other', 'أخرى']];
+const STAGE = [['explore', 'Exploring options', 'أستكشف الخيارات'], ['seek', 'Seeking undergraduate admission', 'أسعى للقبول الجامعي (بكالوريوس)'], ['apply', 'Applying now', 'أقدّم الآن'], ['offer', 'Offer received', 'حصلت على قبول']];
+const MAJORS = [['cs', 'Computer Science', 'علوم الحاسوب'], ['ai', 'Artificial Intelligence', 'الذكاء الاصطناعي'], ['ds', 'Data Science', 'علم البيانات'], ['se', 'Software Engineering', 'هندسة البرمجيات'], ['other', 'Other', 'أخرى']];
+const FUND = [['full', 'Fully funded', 'ممول بالكامل'], ['partial', 'Partial funding is fine', 'التمويل الجزئي مقبول'], ['any', 'No preference', 'بلا تفضيل']];
+const SAMPLE_USER = { name: 'Alex Morgan', email: 'alex.morgan@example.com', nat: '', edu: 'hs-grad', gpa: '3.85', ielts: '7.5', major: 'cs', interests: { ai: true, prog: true, math: true }, countries: { de: true, ca: true, ae: true }, funding: 'full', stage: 'seek', sample: true };
+const R = (k0, k1, st, v0, v1) => ({ k: [k0, k1], st, v: [v0, v1] });
+// Facts below were taken from official pages on CHECKED. Anything not confirmed is marked "to verify". Always confirm on the official site.
+const UNI = [
+  { id: 'u0', cc: 'ae', n: ['MBZUAI (Mohamed bin Zayed University of AI)', 'جامعة محمد بن زايد للذكاء الاصطناعي'], p: ['BSc Artificial Intelligence (Engineering)', 'بكالوريوس الذكاء الاصطناعي (هندسة)'], base: 88, lo: 45000, hi: 45000, cur: 'USD',
+    minI: 6.5, dl: '2027-04-30', dlNote: ['Last published cycle (Fall 2026 entry): early decision 15 Nov, regular decision 30 Apr. Confirm the Fall 2027 dates.', 'الدورة المنشورة الأخيرة (قبول خريف 2026): القبول المبكر 15 نوفمبر والعادي 30 أبريل. تأكد من مواعيد خريف 2027.'],
+    link: 'https://mbzuai.ac.ae/study/undergraduate-program/',
+    w: ['A dedicated four-year AI degree. Merit scholarships are awarded with admission and need no separate application.', 'درجة مخصصة للذكاء الاصطناعي مدتها أربع سنوات، والمنح القائمة على التفوق تُمنح مع القبول دون طلب منفصل.'],
+    req: [R('Published GPA rule', 'قاعدة المعدل المنشورة', 'met', 'No minimum GPA is published; holistic review', 'لا حد أدنى منشور للمعدل؛ مراجعة شاملة'), R('Interview', 'المقابلة', 'verify', 'Shortlisted candidates are invited to an online interview', 'يُدعى المرشحون إلى مقابلة عبر الإنترنت'), R('Recommendation letters', 'خطابات التوصية', 'verify', 'Optional; up to two referees encouraged', 'اختيارية؛ يُشجَّع على ذكر مرجعين')] },
+  { id: 'u1', cc: 'ae', n: ['Khalifa University', 'جامعة خليفة'], p: ['BSc Computer Science', 'بكالوريوس علوم الحاسوب'], base: 80, lo: null, hi: null, cur: 'USD',
+    minI: 6.0, dl: null, dlNote: ['Deadlines are not listed in the catalogue; confirm on the admissions page.', 'المواعيد غير مدرجة في الدليل؛ تأكد من صفحة القبول.'],
+    link: 'https://www.ku.ac.ae/', w: ['Strong engineering and computing university in Abu Dhabi with published subject requirements.', 'جامعة هندسية وحاسوبية قوية في أبوظبي بمتطلبات مواد منشورة.'],
+    req: [R('Grade 12 maths and science', 'رياضيات وعلوم الصف 12', 'verify', 'Minimum 75 to 90 depending on curriculum', 'حد أدنى 75 إلى 90 بحسب المنهج'), R('SAT or EmSAT maths', 'رياضيات SAT أو EmSAT', 'verify', 'SAT Maths 625 or EmSAT Maths 1250', 'SAT رياضيات 625 أو EmSAT رياضيات 1250'), R('Graduation year', 'سنة التخرج', 'verify', 'Graduated no more than two years before entry', 'تخرج قبل لا يزيد عن سنتين من الالتحاق')] },
+  { id: 'u2', cc: 'ae', n: ['New York University Abu Dhabi', 'جامعة نيويورك أبوظبي'], p: ['BS Computer Science', 'بكالوريوس علوم الحاسوب'], base: 76, lo: null, hi: null, cur: 'USD',
+    minI: null, dl: null, dlNote: ['Could not be retrieved while preparing this prototype; confirm deadlines and financial aid on the official page.', 'تعذّر الحصول عليها أثناء إعداد النموذج؛ تأكد من المواعيد والدعم المالي في الصفحة الرسمية.'],
+    link: 'https://nyuad.nyu.edu/en/admissions/undergraduate.html', w: ['A highly selective programme in Abu Dhabi that has a financial aid page for international applicants.', 'برنامج شديد الانتقائية في أبوظبي، وله صفحة دعم مالي للمتقدمين الدوليين.'],
+    req: [R('All requirements', 'جميع المتطلبات', 'verify', 'Check the official undergraduate admissions page', 'راجع صفحة القبول الرسمية للبكالوريوس')] },
+  { id: 'u3', cc: 'de', n: ['Constructor University (Bremen)', 'جامعة كونستركتور (بريمن)'], p: ['BSc Computer Science', 'بكالوريوس علوم الحاسوب'], base: 86, lo: 20000, hi: 20000, cur: 'EUR',
+    minI: null, dl: '2026-12-01', dlNote: ['Early action I. Other rounds: early decision 1 Nov, early action II 1 Feb; rolling 1 Jun for students who need a visa.', 'الجولة المبكرة الأولى. جولات أخرى: القبول المبكر 1 نوفمبر، والثانية 1 فبراير؛ مستمر حتى 1 يونيو لمن يحتاج تأشيرة.'],
+    link: 'https://constructor.university/', w: ['Taught in English with a six-semester bachelor, so no German is needed to study.', 'التدريس بالإنجليزية وبكالوريوس من ستة فصول، فلا حاجة إلى الألمانية للدراسة.'],
+    req: [R('Language test', 'اختبار اللغة', 'verify', 'A language test result is required; confirm the accepted tests and score', 'مطلوب اختبار لغة؛ تأكد من الاختبارات والدرجة المقبولة'), R('Start date', 'موعد البدء', 'verify', 'Programmes start in the winter semester', 'تبدأ البرامج في الفصل الشتوي')] },
+  { id: 'u4', cc: 'de', n: ['Technical University of Munich (TUM)', 'الجامعة التقنية في ميونخ'], p: ['BSc Informatics', 'بكالوريوس المعلوماتية'], base: 84, lo: 4000, hi: 6000, cur: 'EUR',
+    minI: null, dl: null, dlNote: ['Winter-semester deadlines vary by programme; confirm on tum.de.', 'تختلف مواعيد الفصل الشتوي بحسب البرنامج؛ تأكد من tum.de.'],
+    link: 'https://www.tum.de/en/studies/fees/tuition', w: ['Top technical university. New non-EU students pay tuition per semester, and merit waivers may exist later.', 'جامعة تقنية مرموقة. يدفع الطلاب الجدد من خارج الاتحاد الأوروبي رسومًا لكل فصل، وقد توجد إعفاءات للمتفوقين لاحقًا.'],
+    req: [R('Language of instruction', 'لغة التدريس', 'verify', 'Check whether your programme is taught in German or English and which test is required', 'تحقق من لغة تدريس برنامجك والاختبار المطلوب'), R('Fees', 'الرسوم', 'verify', 'About €2,000 to €3,000 per semester for new non-EU students, plus about €150 semester fee (third-party guide; confirm on tum.de)', 'نحو 2000 إلى 3000 يورو للفصل للطلاب الجدد من خارج الاتحاد الأوروبي، مع نحو 150 يورو رسوم فصلية (دليل خارجي؛ تأكد من tum.de)')] },
+  { id: 'u5', cc: 'ca', n: ['University of Toronto', 'جامعة تورنتو'], p: ['BSc Computer Science', 'بكالوريوس علوم الحاسوب'], base: 85, lo: null, hi: null, cur: 'CAD',
+    minI: null, dl: null, dlNote: ['Student applications for September entry are due in January (per the Pearson page); confirm programme deadlines.', 'تُقدَّم الطلبات للالتحاق في سبتمبر في يناير (بحسب صفحة بيرسون)؛ تأكد من مواعيد البرنامج.'],
+    link: 'https://future.utoronto.ca/', w: ['Home of the Lester B. Pearson scholarship, a fully funded award for international undergraduates.', 'موطن منحة ليستر ب. بيرسون الممولة بالكامل للطلاب الدوليين في البكالوريوس.'],
+    req: [R('School nomination for Pearson', 'ترشيح المدرسة لمنحة بيرسون', 'verify', 'Your school must nominate you in November', 'يجب أن ترشحك مدرستك في نوفمبر'), R('English test and programme requirements', 'اختبار اللغة ومتطلبات البرنامج', 'verify', 'Confirm on the admissions page', 'تأكد من صفحة القبول')] },
+  { id: 'u6', cc: 'ca', n: ['University of British Columbia', 'جامعة كولومبيا البريطانية'], p: ['BSc Computer Science', 'بكالوريوس علوم الحاسوب'], base: 83, lo: null, hi: null, cur: 'CAD',
+    minI: null, dl: null, dlNote: ['Confirm the admissions deadline on the UBC dates and deadlines page.', 'تأكد من موعد القبول في صفحة المواعيد لدى UBC.'],
+    link: 'https://you.ubc.ca/', w: ['Offers the International Scholars Program and an entrance award you are considered for automatically.', 'تقدم برنامج الباحثين الدوليين، وجائزة قبول تُنظر فيها تلقائيًا.'],
+    req: [R('Entrance award', 'جائزة القبول', 'met', 'Outstanding International Student Award: considered automatically if you apply by the admissions deadline', 'جائزة الطالب الدولي المتميز: تُدرس تلقائيًا إن قدمت قبل موعد القبول'), R('English test and programme requirements', 'اختبار اللغة ومتطلبات البرنامج', 'verify', 'Confirm on the admissions page', 'تأكد من صفحة القبول')] }
+];
+const SCH = [
+  { id: 's1', uni: 'u0', n: ['MBZUAI merit scholarships', 'منح MBZUAI القائمة على التفوق'], cc: ['ae'], cov: 'full', dl: '2027-04-30', dlText: ['Considered with your admission application', 'تُدرس مع طلب القبول'], base: 90,
+    link: 'https://mbzuai.ac.ae/study/undergraduate-program/',
+    el: ['Merit-based, no separate application. May cover tuition and cost of attendance, and some packages include living support. You must keep good academic standing and conduct.', 'قائمة على التفوق دون طلب منفصل. قد تغطي الرسوم وتكلفة الدراسة، وبعض الحزم تشمل دعم المعيشة. يجب الحفاظ على الأداء الأكاديمي والسلوك.'],
+    docs: ['Same documents as the admission application', 'نفس مستندات طلب القبول'] },
+  { id: 's2', uni: 'u5', n: ['Lester B. Pearson International Scholarship (Toronto)', 'منحة ليستر ب. بيرسون الدولية (تورنتو)'], cc: ['ca'], cov: 'full', dl: null, dlText: ['School nomination in November; your application in January. Cycles change, so confirm.', 'ترشيح المدرسة في نوفمبر وطلبك في يناير. تتغير الدورات فتأكد.'], base: 88,
+    link: 'https://future.utoronto.ca/pearson/',
+    el: ['Four years of tuition, books, incidental fees and full residence support. For international students who need a study permit, finishing or recently finishing secondary school, nominated by their school, with an outstanding record and leadership.', 'أربع سنوات من الرسوم والكتب والرسوم الإضافية والسكن الكامل. للطلاب الدوليين الذين يحتاجون تصريح دراسة، وهم في نهاية الثانوية أو تخرجوا حديثًا، بترشيح مدرستهم، مع سجل متميز وقيادة.'],
+    docs: ['School nomination, regular U of T application, online Pearson application', 'ترشيح المدرسة، طلب القبول في جامعة تورنتو، طلب بيرسون عبر الإنترنت'] },
+  { id: 's3', uni: 'u6', n: ['UBC International Scholars Program', 'برنامج الباحثين الدوليين في UBC'], cc: ['ca'], cov: 'verify', dl: null, dlText: ['See the official page for the application and dates', 'راجع الصفحة الرسمية للطلب والمواعيد'], base: 80,
+    link: 'https://you.ubc.ca/financial-planning/scholarships-awards-international-students/international-scholars/',
+    el: ['For high academic achievers with significant financial need, exceptional extracurricular involvement and a commitment to positive global and social change. The amount is not stated on the overview page.', 'للمتفوقين أكاديميًا ذوي الحاجة المالية الكبيرة ومشاركة لافتة في الأنشطة والتزام بالتغيير الإيجابي. لم يُذكر المبلغ في الصفحة التعريفية.'],
+    docs: ['See the official application page', 'راجع صفحة التقديم الرسمية'] },
+  { id: 's4', uni: 'u6', n: ['UBC Outstanding International Student Award', 'جائزة UBC للطالب الدولي المتميز'], cc: ['ca'], cov: 'verify', dl: null, dlText: ['Apply to UBC by the admissions deadline', 'قدّم إلى UBC قبل موعد القبول'], base: 76,
+    link: 'https://you.ubc.ca/international-entrance-scholarships/',
+    el: ['You are considered automatically if you apply by the admissions deadline. The amount is not stated on the overview page.', 'تُنظر فيها تلقائيًا إن قدمت قبل موعد القبول. لم يُذكر المبلغ في الصفحة التعريفية.'],
+    docs: ['No separate application', 'لا طلب منفصل'] },
+  { id: 's5', uni: 'u4', n: ['TUM merit-based tuition waiver', 'إعفاء TUM من الرسوم للمتفوقين'], cc: ['de'], cov: 'verify', dl: null, dlText: ['Typically around 31 May for winter semester (third-party guide); confirm', 'عادة نحو 31 مايو للفصل الشتوي (دليل خارجي)؛ تأكد'], base: 72,
+    link: 'https://www.tum.de/en/studies/fees/tuition',
+    el: ['Bachelor students can usually apply for a merit-based waiver from their second semester, based on TUM grades. Confirm the rules on the official fees page.', 'يمكن لطلاب البكالوريوس عادة التقدم لإعفاء قائم على التفوق من الفصل الثاني بحسب درجات TUM. تأكد من القواعد في صفحة الرسوم الرسمية.'],
+    docs: ['See the official fees page', 'راجع صفحة الرسوم الرسمية'] },
+  { id: 's6', uni: 'u2', n: ['NYU Abu Dhabi financial aid', 'الدعم المالي في جامعة نيويورك أبوظبي'], cc: ['ae'], cov: 'verify', dl: null, dlText: ['Confirm on the official page', 'تأكد من الصفحة الرسمية'], base: 85,
+    link: 'https://nyuad.nyu.edu/en/admissions/undergraduate/scholarships-and-financial-aid.html',
+    el: ['The university publishes a scholarships and financial aid page. This prototype could not read it, so check eligibility and coverage there.', 'تنشر الجامعة صفحة للمنح والدعم المالي. تعذّر على هذا النموذج قراءتها، فتحقق من الأهلية والتغطية هناك.'],
+    docs: ['See the official page', 'راجع الصفحة الرسمية'] }
+];
+const O = [
+  { id: 'o1', type: ['Course', 'دورة'], t: ['CS50x: Introduction to Computer Science (Harvard, free)', 'CS50x: مقدمة في علوم الحاسوب (هارفارد، مجانية)'], link: 'https://cs50.harvard.edu/x/', rel: ['A widely used free course that shows programming fundamentals for a Computer Science application.', 'دورة مجانية واسعة الاستخدام تُظهر أساسيات البرمجة لطلب علوم الحاسوب.'] },
+  { id: 'o2', type: ['Certification', 'شهادة'], t: ['Machine Learning Specialization (DeepLearning.AI, Coursera)', 'تخصص التعلم الآلي (DeepLearning.AI على Coursera)'], link: 'https://www.coursera.org/specializations/machine-learning-introduction', rel: ['Builds the core machine-learning knowledge behind your AI interest. Certificates may need a paid plan or financial aid.', 'يبني أساس التعلم الآلي خلف اهتمامك بالذكاء الاصطناعي. قد تحتاج الشهادة اشتراكًا أو دعمًا ماليًا.'] },
+  { id: 'o3', type: ['Course', 'دورة'], t: ['MIT OpenCourseWare: Linear Algebra (18.06)', 'MIT OpenCourseWare: الجبر الخطي (18.06)'], link: 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/', rel: ['Linear algebra underpins machine learning, and it strengthens the mathematics side of your profile.', 'الجبر الخطي أساس التعلم الآلي ويقوّي جانب الرياضيات في ملفك.'] },
+  { id: 'o4', type: ['Competition', 'مسابقة'], t: ['Kaggle competitions and Learn courses', 'مسابقات Kaggle ودورات Learn'], link: 'https://www.kaggle.com/competitions', rel: ['Practical data and AI problems with public leaderboards you can cite in applications.', 'مسائل عملية في البيانات والذكاء الاصطناعي مع لوحات ترتيب علنية يمكنك ذكرها في طلباتك.'] },
+  { id: 'o5', type: ['Competition', 'مسابقة'], t: ['International Olympiad in Informatics (national selection)', 'أولمبياد المعلوماتية الدولي (الاختيار الوطني)'], link: 'https://ioinformatics.org/', rel: ['The main secondary-school algorithmic competition; entry is through your country’s national team.', 'المسابقة الأبرز في الخوارزميات للمرحلة الثانوية؛ يتم الدخول عبر الفريق الوطني لبلدك.'] },
+  { id: 'o6', type: ['Hackathon', 'هاكاثون'], t: ['Find hackathons on Devpost', 'ابحث عن هاكاثونات على Devpost'], link: 'https://devpost.com/hackathons', rel: ['Shows you can ship an AI or software project in a team; many are online and open to students.', 'يُظهر قدرتك على إنجاز مشروع ذكاء اصطناعي أو برمجيات ضمن فريق؛ كثير منها عبر الإنترنت ومفتوح للطلاب.'] },
+  { id: 'o7', type: ['Hackathon', 'هاكاثون'], t: ['Major League Hacking student hackathons', 'هاكاثونات الطلاب من Major League Hacking'], link: 'https://mlh.io/', rel: ['A student hackathon league with events you can join to build portfolio projects.', 'رابطة هاكاثونات للطلاب بفعاليات يمكنك المشاركة فيها لبناء مشاريع لملفك.'] },
+  { id: 'o8', type: ['Project', 'مشروع'], t: ['Build and publish an AI project on GitHub', 'ابنِ وانشر مشروع ذكاء اصطناعي على GitHub'], link: 'https://github.com/', rel: ['A public project is direct evidence of programming skill, and interviewers can read it.', 'المشروع العلني دليل مباشر على مهارة البرمجة ويمكن للمحاورين الاطلاع عليه.'] },
+  { id: 'o9', type: ['Volunteering', 'تطوع'], t: ['Run a coding club for younger students (Code Club)', 'إدارة نادٍ للبرمجة لطلاب أصغر (Code Club)'], link: 'https://codeclub.org/', rel: ['Shows leadership and communication, which scholarship panels such as Pearson look for.', 'يُظهر القيادة والتواصل اللذين تبحث عنهما لجان المنح مثل بيرسون.'] }
+];
+const TUT = [
+  { id: 't1', ex: 'ielts', n: ['Sample tutor A', 'مدرّس تجريبي أ'], f: ['IELTS Writing and Speaking', 'كتابة ومحادثة IELTS'], b: ['Illustrative profile only. Real tutors will be added when the marketplace launches.', 'ملف توضيحي فقط. ستُضاف مدرّسون حقيقيون عند إطلاق السوق.'] },
+  { id: 't2', ex: 'ielts', n: ['Sample tutor B', 'مدرّس تجريبي ب'], f: ['IELTS Reading and Listening', 'قراءة واستماع IELTS'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] },
+  { id: 't3', ex: 'sat', n: ['Sample tutor C', 'مدرّس تجريبي ج'], f: ['SAT Math', 'رياضيات SAT'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] },
+  { id: 't4', ex: 'sat', n: ['Sample tutor D', 'مدرّس تجريبي د'], f: ['SAT Reading and Writing', 'قراءة وكتابة SAT'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] },
+  { id: 't5', ex: 'toefl', n: ['Sample tutor E', 'مدرّس تجريبي هـ'], f: ['TOEFL Speaking', 'محادثة TOEFL'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] },
+  { id: 't6', ex: 'toefl', n: ['Sample tutor F', 'مدرّس تجريبي و'], f: ['TOEFL Writing', 'كتابة TOEFL'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] },
+  { id: 't7', ex: 'ap', n: ['Sample tutor G', 'مدرّس تجريبي ز'], f: ['AP Calculus', 'تفاضل وتكامل AP'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] },
+  { id: 't8', ex: 'ap', n: ['Sample tutor H', 'مدرّس تجريبي ح'], f: ['AP Computer Science A', 'علوم الحاسوب AP'], b: ['Illustrative profile only.', 'ملف توضيحي فقط.'] }
+];
+const PREP = {
+  sat: ['https://www.khanacademy.org/test-prep/sat', 'Khan Academy official SAT practice', 'تدريب SAT الرسمي من Khan Academy'],
+  ielts: ['https://ielts.org/', 'IELTS official site: preparation and practice', 'موقع IELTS الرسمي: التحضير والتدريب'],
+  toefl: ['https://www.ets.org/toefl.html', 'ETS TOEFL official site: preparation', 'موقع ETS الرسمي لـ TOEFL: التحضير'],
+  ap: ['https://apstudents.collegeboard.org/', 'College Board AP Students', 'موقع AP للطلاب من College Board']
+};
+const SLOTS = [['Sample slot: Mon 17:00', 'موعد تجريبي: الاثنين 17:00'], ['Sample slot: Wed 19:00', 'موعد تجريبي: الأربعاء 19:00'], ['Sample slot: Sat 10:00', 'موعد تجريبي: السبت 10:00']];
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -567,14 +904,33 @@ class Component extends DCLogic {
       filter: 'all',
       done: { a: true, b: false, c: false, d: false, e: false },
       saved: {},
-      dest: { ca: true, nl: true, au: true },
+      dest: { de: true, ca: true, ae: true },
       uFilter: 'all',
-      short: { u0: true },
+      short: {},
       track: {},
       exam: 'sat',
       post: {},
-      notify: false
+      notify: false,
+      chatState: 'closed',
+      chat: [{ r: 'bot', k: 'greet' }],
+      roadmap: {},
+      apps: {},
+      deadlines: {},
+      modal: null,
+      slot: 0,
+      bookNote: false,
+      user: null, authed: false, authMode: 'up', authErr: '', draft: { interests: {}, countries: { de: true, ca: true, ae: true }, funding: 'full' }, side: true, profileMsg: '', profileOk: false
     };
+    try {
+      const user = JSON.parse(localStorage.getItem('pathway-profile') || 'null');
+      const data = JSON.parse(localStorage.getItem('pathway-data') || '{}');
+      const sess = localStorage.getItem('pathway-session') === '1';
+      const store = { short: data.short || {}, apps: data.apps || {}, track: data.track || {}, deadlines: data.deadlines || {}, roadmap: data.roadmap || {}, side: data.side !== false };
+      Object.assign(this.state, store);
+      if (sess && data.sample) { this.state.user = { ...SAMPLE_USER }; this.state.authed = true; }
+      else if (sess && user) { this.state.user = user; this.state.authed = true; this.state.draft = this.draftFrom(user); }
+    } catch (e) {}
+    setTimeout(() => this.syncForms(), 120);
   }
   pick(l) {
     try { localStorage.setItem('pathway-lang', l); } catch (e) {}
@@ -583,10 +939,439 @@ class Component extends DCLogic {
   setTab(id) {
     this.setState({ tab: id });
   }
+  ls(k, v) {
+    try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {}
+    return null;
+  }
+  setState(p) {
+    super.setState(p);
+    this.persist();
+    setTimeout(() => this.syncForms(), 60);
+    setTimeout(() => this.syncForms(), 320);
+  }
+  // Form fields are plain (uncontrolled) inputs so they stay editable. Starting values are set once per field after it appears.
+  syncForms() {
+    try {
+      const U = this.who();
+      const defs = { 'f-': { edu: 'hs-grad', major: 'cs', stage: 'seek' }, 'p-': { name: U.name, email: U.email, nat: U.nat, gpa: U.gpa, ielts: U.ielts, edu: U.edu, major: U.major, stage: U.stage } };
+      Object.keys(defs).forEach((pre) => {
+        Object.keys(defs[pre]).forEach((k) => {
+          const el = document.getElementById(pre + k);
+          if (el && !el.__init) { el.value = defs[pre][k] || ''; el.__init = true; }
+        });
+      });
+    } catch (e) {}
+  }
+  persist() {
+    const S = this.state;
+    try {
+      if (S.user && !S.user.sample) localStorage.setItem('pathway-profile', JSON.stringify(S.user));
+      localStorage.setItem('pathway-data', JSON.stringify({ short: S.short, apps: S.apps, track: S.track, deadlines: S.deadlines, roadmap: S.roadmap, side: S.side, sample: !!(S.user && S.user.sample) }));
+      localStorage.setItem('pathway-session', S.authed ? '1' : '');
+    } catch (e) {}
+  }
+  who() { return this.state.user || SAMPLE_USER; }
+  val(id) { try { const el = document.getElementById(id); return el ? String(el.value).trim() : ''; } catch (e) { return ''; } }
+  scrollChat() {
+    setTimeout(() => {
+      ['msgs-page', 'msgs-float'].forEach((id) => {
+        try { const el = document.getElementById(id); if (el) el.scrollTop = el.scrollHeight; } catch (e) {}
+      });
+    }, 30);
+  }
+  push(msgs) {
+    this.setState({ chat: this.state.chat.concat(msgs) });
+    this.scrollChat();
+  }
+  ask(key) {
+    this.push([{ r: 'user', k: 'choice', a: key }, { r: 'bot', k: key === 'exam' ? 'examAsk' : key }]);
+  }
+  pickExam(id) {
+    this.push([{ r: 'user', k: 'text', a: id.toUpperCase() }, { r: 'bot', k: 'examRes', a: id }]);
+  }
+  route(txt) {
+    const s = txt.toLowerCase();
+    if (/(fund|gap|cost|afford|budget|tuition|تمويل|تكلف|فجوة)/.test(s)) return 'funding';
+    if (/(scholar|grant|منح|منحة)/.test(s)) return 'sch';
+    if (/(univers|college|program|apply|جامع|برنامج|قبول)/.test(s)) return 'uni';
+    if (/(ielts|sat|toefl|ap\b|exam|mock|tutor|اختبار|مدرس|مدرّس)/.test(s)) return 'exam';
+    if (/(profile|course|certif|intern|hackathon|competition|volunt|roadmap|ملف|دورة|شهادة|تدريب|مسابقة)/.test(s)) return 'prof';
+    return 'fallback';
+  }
+  scripted(txt) {
+    const k = this.route(txt);
+    const m = txt.toLowerCase().match(/ielts|sat|toefl|\bap\b/);
+    return (k === 'exam' && m) ? { r: 'bot', k: 'examRes', a: m[0].trim() } : { r: 'bot', k: k === 'exam' ? 'examAsk' : k };
+  }
+  send(txt) {
+    txt = (txt || '').trim().slice(0, 500);
+    if (!txt) return;
+    if (!API_URL) { this.push([{ r: 'user', k: 'text', a: txt }, this.scripted(txt)]); return; }
+    const S = this.state;
+    const hist = S.chat.filter((m) => m.k === 'text' || m.k === 'ai').slice(-8).map((m) => ({ role: m.r === 'user' ? 'user' : 'assistant', content: String(m.a || '') })).filter((m) => m.content);
+    this.push([{ r: 'user', k: 'text', a: txt }, { r: 'bot', k: 'ai', a: '', load: true }]);
+    const done = (bot) => {
+      const chat = this.state.chat.slice();
+      for (let i = chat.length - 1; i >= 0; i--) { if (chat[i].load) { chat[i] = bot; break; } }
+      this.setState({ chat });
+      this.scrollChat();
+    };
+    const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const to = setTimeout(() => { try { if (ctl) ctl.abort(); } catch (e) {} }, 25000);
+    fetch(API_URL, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl ? ctl.signal : undefined,
+      body: JSON.stringify({ message: txt, history: hist, lang: S.lang, profile: this.who(), saved: { universities: Object.keys(S.short).filter((k) => S.short[k]), tracked: Object.keys(S.apps).filter((k) => S.apps[k]), scholarships: Object.keys(S.track).filter((k) => S.track[k]), roadmap: Object.keys(S.roadmap).filter((k) => S.roadmap[k]) } })
+    }).then((r) => { if (!r.ok) throw new Error('bad'); return r.json(); }).then((j) => {
+      clearTimeout(to);
+      if (!j || !j.reply) throw new Error('empty');
+      const show = ['uni', 'sch', 'prof', 'funding', 'examAsk'].includes(j.show) ? j.show : null;
+      done({ r: 'bot', k: 'ai', a: String(j.reply), show });
+    }).catch(() => {
+      clearTimeout(to);
+      done({ ...this.scripted(txt), fb: true });
+    });
+  }
+  sendFrom(id) {
+    try {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const v = el.value;
+      el.value = '';
+      this.send(v);
+    } catch (e) {}
+  }
+  keyFrom(id) {
+    return (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); this.sendFrom(id); } };
+  }
+  openAssistant(key) {
+    this.setState({ tab: 'assistant', chatState: 'closed' });
+    if (key) this.ask(key); else this.scrollChat();
+  }
+  setFloat(v) {
+    this.setState({ chatState: v });
+    if (v === 'open' && this.state.chat.length > 1) this.scrollChat();
+    if (v === 'open') setTimeout(() => { try { const el = document.getElementById('in-float'); if (el) el.focus(); } catch (e) {} }, 40);
+  }
+  openModal(id, view) {
+    this.setState({ modal: { id, view }, slot: 0, bookNote: false });
+    setTimeout(() => { try { const el = document.getElementById('modal-close'); if (el) el.focus(); } catch (e) {} }, 40);
+  }
+  toggle(map, id) {
+    this.setState({ [map]: { ...this.state[map], [id]: !this.state[map][id] } });
+  }
+  // ---- account and profile ----
+  draftFrom(u) {
+    return { interests: { ...(u.interests || {}) }, countries: { ...(u.countries || {}) }, funding: u.funding || 'full' };
+  }
+  openProfile() {
+    this.setState({ tab: 'profile', draft: this.draftFrom(this.who()), profileMsg: '' });
+  }
+  setAuthMode(m) { this.setState({ authMode: m, authErr: '' }); }
+  togDraft(map, id) {
+    const d = this.state.draft;
+    this.setState({ draft: { ...d, [map]: { ...d[map], [id]: !d[map][id] } } });
+  }
+  readForm(p, ar) {
+    const L = (en, a) => (ar ? a : en);
+    const v = (n) => this.val(p + n);
+    const d = this.state.draft;
+    const u = { name: v('name'), email: v('email').toLowerCase(), nat: v('nat'), edu: v('edu'), gpa: v('gpa'), ielts: v('ielts'), major: v('major'), stage: v('stage'), interests: d.interests, countries: d.countries, funding: d.funding };
+    let err = '';
+    if (!u.name) err = L('Please enter your name.', 'أدخل اسمك.');
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(u.email)) err = L('Please enter a valid email address.', 'أدخل بريدًا إلكترونيًا صحيحًا.');
+    else if (u.gpa && !(Number(u.gpa) >= 0 && Number(u.gpa) <= 4)) err = L('GPA must be a number from 0 to 4.', 'يجب أن يكون المعدل رقمًا من 0 إلى 4.');
+    else if (u.ielts && !(Number(u.ielts) >= 0 && Number(u.ielts) <= 9)) err = L('IELTS must be a number from 0 to 9.', 'يجب أن تكون درجة IELTS رقمًا من 0 إلى 9.');
+    else if (!Object.keys(u.countries).some((k) => u.countries[k])) err = L('Choose at least one country.', 'اختر بلدًا واحدًا على الأقل.');
+    return { u, err };
+  }
+  begin(u) {
+    this.setState({ user: u, authed: true, authErr: '', tab: 'pathway', chat: [{ r: 'bot', k: 'greet' }], draft: this.draftFrom(u), profileMsg: '' });
+    this.scrollChat();
+  }
+  signUp() {
+    const { u, err } = this.readForm('f-', this.state.lang === 'ar');
+    if (err) { this.setState({ authErr: err }); return; }
+    this.begin(u);
+  }
+  signIn() {
+    const ar = this.state.lang === 'ar';
+    const email = this.val('f-email2').toLowerCase();
+    let stored = null;
+    try { stored = JSON.parse(localStorage.getItem('pathway-profile') || 'null'); } catch (e) {}
+    if (stored && stored.email === email) { this.begin(stored); return; }
+    this.setState({ authErr: ar ? 'لم نجد ملفًا بهذا البريد في هذا المتصفح. أنشئ حسابًا أولًا.' : 'No profile with this email was found in this browser. Create an account first.' });
+  }
+  useSample() { this.begin({ ...SAMPLE_USER }); }
+  signOut() {
+    this.setState({ authed: false, authMode: 'up', tab: 'pathway', chatState: 'closed', modal: null });
+  }
+  saveProfile() {
+    const { u, err } = this.readForm('p-', this.state.lang === 'ar');
+    if (err) { this.setState({ profileMsg: err, profileOk: false }); return; }
+    this.setState({ user: { ...u, sample: false }, profileMsg: this.state.lang === 'ar' ? 'تم حفظ ملفك. تم تحديث الترشيحات.' : 'Profile saved. Your matches are updated.', profileOk: true });
+  }
+  // ---- matching ----
+  tuRange(u) { return u.lo == null ? null : [u.lo, u.hi]; }
+  money(n, cur) { return ({ USD: '$', EUR: '€', CAD: 'CA$' }[cur] || '') + Math.round(n).toLocaleString('en-US'); }
+  routesFor(u) { return SCH.filter((c) => c.uni === u.id); }
+  fitOf(u) {
+    const U = this.who();
+    let f = u.base;
+    if (U.countries && U.countries[u.cc]) f += 8; else f -= 6;
+    if (['cs', 'ai', 'ds', 'se'].includes(U.major)) f += 3; else f -= 12;
+    const ie = parseFloat(U.ielts);
+    if (u.minI && !isNaN(ie)) f += ie >= u.minI ? 4 : -12;
+    if (U.funding === 'full' && this.routesFor(u).some((c) => c.cov === 'full')) f += 4;
+    return Math.max(50, Math.min(98, Math.round(f)));
+  }
+  reqsOf(u, P, L) {
+    const U = this.who();
+    const ie = parseFloat(U.ielts), gp = parseFloat(U.gpa);
+    const rows = [];
+    if (u.minI) {
+      if (isNaN(ie)) rows.push({ k: L('English (IELTS)', 'اللغة (IELTS)'), st: 'verify', v: L('Minimum ' + u.minI + '. Add your IELTS score to your profile.', 'الحد الأدنى ' + u.minI + '. أضف درجة IELTS إلى ملفك.') });
+      else rows.push({ k: L('English (IELTS)', 'اللغة (IELTS)'), st: ie >= u.minI ? 'met' : 'miss', v: L('Your ' + ie + ' vs minimum ' + u.minI, 'درجتك ' + ie + ' مقابل الحد الأدنى ' + u.minI) });
+    }
+    if (!isNaN(gp)) rows.push({ k: L('Your GPA', 'معدلك'), st: 'verify', v: L(gp.toFixed(2) + ' / 4.00. Universities convert grades differently, so confirm how yours is read.', gp.toFixed(2) + ' / 4.00. تختلف الجامعات في تحويل الدرجات، فتأكد من كيفية احتسابها.') });
+    return rows.concat(u.req.map((r) => ({ k: P(r.k), st: r.st, v: P(r.v) })));
+  }
+  assistantVals(L, ar, fmt, P) {
+    const S = this.state, U = this.who();
+    const first = (U.name || '').split(' ')[0] || L('there', 'صديقي');
+    const money = (n, c) => this.money(n, c);
+    const majorL = P((MAJORS.find((m) => m[0] === U.major) || MAJORS[0]).slice(1));
+    const ctry = Object.keys(CC).filter((k) => U.countries && U.countries[k]).map((k) => P(CC[k])).join(ar ? '، ' : ', ');
+    const facts = [U.gpa ? 'GPA ' + U.gpa : '', U.ielts ? 'IELTS ' + U.ielts : ''].filter(Boolean).join(ar ? ' و' : ' and ');
+    const t = {
+      asTitle: L('Pathway AI Assistant', 'مساعد Pathway AI'),
+      asSub: L('Your guide to universities, scholarships, exams and profile building. It uses your saved profile, so you never repeat yourself.', 'دليلك إلى الجامعات والمنح والاختبارات وبناء الملف. يستخدم ملفك المحفوظ فلا تكرّر معلوماتك.'),
+      asProto: API_URL ? L('Answers come from an AI model grounded in a catalogue checked on ' + CHECKED + '. Always confirm details on the official sites.', 'الإجابات من نموذج ذكاء اصطناعي مبني على دليل جرى التحقق منه في ' + CHECKED + '. تأكد دائمًا من التفاصيل في المواقع الرسمية.') : L('Prototype: replies are scripted for now, using a catalogue checked on ' + CHECKED + '. A real AI model connects through a secure backend, with no keys in this page.', 'نموذج أولي: الردود مبرمجة حاليًا باستخدام دليل جرى التحقق منه في ' + CHECKED + '. يتصل نموذج ذكاء اصطناعي حقيقي عبر خادم آمن دون أي مفاتيح في هذه الصفحة.'),
+      ph: L('Ask about universities, funding, exams…', 'اسأل عن الجامعات أو التمويل أو الاختبارات…'),
+      send: L('Send', 'إرسال'),
+      inputLabel: L('Message Pathway AI Assistant', 'رسالة إلى مساعد Pathway AI'),
+      sugLabel: L('Suggested questions', 'أسئلة مقترحة'),
+      verifyTag: L('Verify on the official site', 'تحقق من الموقع الرسمي'),
+      sampleTag: L('Illustrative sample', 'عيّنة توضيحية'),
+      whyLabel: L('Why it fits:', 'سبب الملاءمة:'),
+      docsLabel: L('Documents:', 'المستندات:'),
+      minimize: L('Minimise assistant', 'تصغير المساعد'),
+      restore: L('Expand assistant', 'توسيع المساعد'),
+      close: L('Close assistant', 'إغلاق المساعد'),
+      launch: L('Open Pathway AI Assistant', 'افتح مساعد Pathway AI'),
+      roadTitle: L('My development roadmap', 'خارطة طريق تطوير ملفي'),
+      roadSub: L('Opportunities you saved from the assistant or the Recommended bar.', 'الفرص التي حفظتها من المساعد أو من شريط التوصيات.'),
+      roadEmpty: L('Nothing saved yet. Ask the assistant to improve your academic profile.', 'لم تحفظ شيئًا بعد. اطلب من المساعد تطوير ملفك الأكاديمي.'),
+      roadCta: L('Improve my academic profile', 'تطوير ملفي الأكاديمي'),
+      remove: L('Remove', 'إزالة'),
+      mClose: L('Close', 'إغلاق'),
+      mSample: L('Sample profile. Not a real tutor.', 'ملف تجريبي. ليس مدرّسًا حقيقيًا.'),
+      mBookTitle: L('Sample booking page', 'صفحة حجز تجريبية'),
+      mBookNote: L('This is a prototype page. Nothing is booked and no one is notified.', 'هذه صفحة نموذج أولي. لا يتم حجز أي شيء ولا يُخطَر أحد.'),
+      mBookBtn: L('Preview confirmation', 'معاينة التأكيد'),
+      mBookDone: L('Preview only: no booking was made and no tutor was contacted.', 'معاينة فقط: لم يتم أي حجز ولم يُتواصل مع أي مدرّس.'),
+      mSlots: L('Choose a sample time', 'اختر وقتًا تجريبيًا'),
+      fullPage: L('Open the full assistant page', 'افتح صفحة المساعد الكاملة'),
+      you: L('You', 'أنت'),
+      thinking: L('Thinking…', 'جارٍ التفكير…'),
+      fbNote: L('The AI service is unavailable, so here is the built-in answer.', 'خدمة الذكاء الاصطناعي غير متاحة، وهذه إجابة مضمّنة.'),
+      // auth
+      authTitle: L('Welcome to Pathway AI', 'مرحبًا بك في Pathway AI'),
+      authSub: L('From ambition to admission. Create your profile and get matches, funding routes and next steps built around you.', 'من الطموح إلى القبول. أنشئ ملفك لتحصل على ترشيحات ومسارات تمويل وخطوات تالية مبنية عليك.'),
+      tabUp: L('Create account', 'إنشاء حساب'), tabIn: L('Sign in', 'تسجيل الدخول'),
+      aboutYou: L('About you', 'عنك'), academics: L('Academics', 'الأكاديميات'), goals: L('Your goals', 'أهدافك'),
+      lName: L('Full name', 'الاسم الكامل'), lEmail: L('Email address', 'البريد الإلكتروني'), lNat: L('Nationality (optional)', 'الجنسية (اختياري)'),
+      lEdu: L('Education', 'التعليم'), lGpa: L('GPA out of 4.00', 'المعدل من 4.00'), lIelts: L('IELTS score (optional)', 'درجة IELTS (اختياري)'),
+      lMajor: L('Intended major', 'التخصص المرغوب'), lStage: L('Current stage', 'المرحلة الحالية'),
+      lInterests: L('Interests', 'الاهتمامات'), lCountries: L('Preferred countries', 'البلدان المفضلة'), lFunding: L('Funding preference', 'تفضيل التمويل'),
+      countryNote: L('The catalogue covers Germany, Canada and the UAE for now, with Computer Science and AI programmes.', 'يغطي الدليل حاليًا ألمانيا وكندا والإمارات، مع برامج علوم الحاسوب والذكاء الاصطناعي.'),
+      createBtn: L('Create my profile', 'أنشئ ملفي'), signInBtn: L('Sign in', 'دخول'), sampleBtn: L('Try the sample account (Alex Morgan)', 'جرّب الحساب التجريبي (أليكس مورغان)'),
+      signInNote: L('Prototype: profiles are saved only in this browser, there is no password yet, and nothing is sent to a server.', 'نموذج أولي: تُحفظ الملفات في هذا المتصفح فقط، ولا توجد كلمة مرور بعد، ولا يُرسل شيء إلى خادم.'),
+      saveBtn: L('Save changes', 'احفظ التغييرات'), signOut: L('Sign out', 'تسجيل الخروج'),
+      hideMenu: L('Hide menu', 'إخفاء القائمة'), showMenu: L('Show menu', 'إظهار القائمة'),
+      openProfileLbl: L('Open my profile', 'افتح ملفي'),
+      profHead: L('My profile', 'ملفي'),
+      profSub: L('Edit your details any time. Matches, funding and the assistant update straight away.', 'عدّل بياناتك في أي وقت. تتحدث الترشيحات والتمويل والمساعد فورًا.')
+    };
+
+    const choiceLabel = {
+      uni: L('University Applications', 'طلبات الجامعات'),
+      sch: L('Scholarship Opportunities', 'فرص المنح الدراسية'),
+      exam: L('Exam Preparation', 'التحضير للاختبارات'),
+      prof: L('Improve My Academic Profile', 'تطوير ملفي الأكاديمي'),
+      funding: L('Check my funding gap', 'احسب فجوة التمويل')
+    };
+    const optionDefs = [
+      ['uni', L('Explore universities and undergraduate programs that match your profile.', 'استكشف الجامعات وبرامج البكالوريوس المناسبة لملفك.')],
+      ['sch', L('Discover relevant scholarships, understand eligibility and explore funding options.', 'اكتشف المنح المناسبة، وافهم شروط الأهلية، واستكشف خيارات التمويل.')],
+      ['exam', L('Find tutors, mock tests, courses and study resources.', 'اعثر على مدرّسين واختبارات تجريبية ودورات وموارد دراسة.')],
+      ['prof', L('Discover courses, internships, volunteering, hackathons and programs.', 'اكتشف الدورات والتدريب والتطوع والهاكاثونات والبرامج.')]
+    ];
+    const options = optionDefs.map(([k, d], i) => ({ n: String(i + 1), label: choiceLabel[k], desc: d, go: () => this.ask(k) }));
+
+    const mkAct = (label, go, on, aria) => ({ label, go, isLink: false, isBtn: true, pressed: on === undefined ? undefined : (on ? 'true' : 'false'), bg: on ? '#E1E8FF' : '#FFFFFF', color: on ? '#1B37AE' : '#0E1A2B', border: on ? '#1B37AE' : '#0E1A2B', aria: aria || label });
+    const mkLink = (label, href) => ({ label, isLink: true, isBtn: false, href, aria: label + ' ' + L('(opens an external site)', '(يفتح موقعًا خارجيًا)') });
+    const rowOf = (k, v, st) => ({ k, v, hasTag: !!st, tagTxt: st ? P(RST[st].l) : '', tagBg: st ? RST[st].bg : '', tagColor: st ? RST[st].c : '' });
+    const base = { hasChip: false, hasSub: false, hasWhy: false, hasDeadline: false, hasDocs: false, chip: '', chipBg: '#E8ECF2', chipColor: '#2D3A50', sub: '', why: '', deadline: '', docs: '', note: t.verifyTag };
+    const covColors = { full: ['#DDF3E4', '#14532D'], partial: ['#E1E8FF', '#1B37AE'], tuition: ['#E8ECF2', '#2D3A50'], verify: ['#FFF1C7', '#5C3F00'] };
+
+    const tuText = (u) => {
+      const r = this.tuRange(u);
+      if (!r) return L('See the official page', 'راجع الصفحة الرسمية');
+      return (r[0] === r[1] ? money(r[0], u.cur) : money(r[0], u.cur) + ' to ' + money(r[1], u.cur)) + L(' per year', ' سنويًا');
+    };
+    const uniCard = (u) => {
+      const sv = !!S.short[u.id], tr = !!S.apps[u.id], fit = this.fitOf(u);
+      const reqs = this.reqsOf(u, P, L), need = reqs.filter((r) => r.st !== 'met').length;
+      return { ...base, tag: P(CC[u.cc]), title: P(u.n), hasSub: true, sub: P(u.p), hasChip: true, chip: (ar ? 'ملاءمة (تقدير) ' : 'Fit estimate ') + fit + '%', chipBg: fit >= 85 ? '#DDF3E4' : '#E1E8FF', chipColor: fit >= 85 ? '#14532D' : '#1B37AE', hasWhy: true,
+        why: P(u.w) + (U.countries && U.countries[u.cc] ? L(' It is in one of your preferred countries.', ' وهي في أحد بلدانك المفضلة.') : ''),
+        rows: [rowOf(L('Tuition', 'الرسوم'), tuText(u))].concat(reqs.map((r) => rowOf(r.k, r.v, r.st))),
+        hasDeadline: true, deadline: (u.dl ? L('Next date: ', 'أقرب موعد: ') + fmt(u.dl) + '. ' : '') + P(u.dlNote),
+        hasDocs: true, docs: need ? (ar ? `${need} بنود تحتاج إلى عمل أو تحقق.` : `${need} item(s) still need action or verification.`) : L('All listed requirements met.', 'جميع المتطلبات المدرجة مستوفاة.'),
+        acts: [mkAct(sv ? L('Saved', 'تم الحفظ') : L('Save university', 'احفظ الجامعة'), () => this.toggle('short', u.id), sv, (sv ? L('Saved: ', 'تم الحفظ: ') : L('Save: ', 'احفظ: ')) + P(u.n)),
+          mkAct(tr ? L('Tracking application', 'الطلب قيد التتبّع') : L('Track application', 'تتبّع الطلب'), () => this.toggle('apps', u.id), tr, (tr ? L('Tracking: ', 'قيد التتبّع: ') : L('Track: ', 'تتبّع: ')) + P(u.n)),
+          mkLink(L('Official page', 'الصفحة الرسمية'), u.link)] };
+    };
+    const schCard = (c) => {
+      const sv = !!S.track[c.id], dl = !!S.deadlines[c.id], cl = covColors[c.cov];
+      return { ...base, tag: c.cc.map((x) => P(CC[x])).join(', '), title: P(c.n), hasChip: true, chip: P(COV[c.cov]), chipBg: cl[0], chipColor: cl[1], hasWhy: true, why: P(c.el),
+        rows: [], hasDeadline: true, deadline: (c.dl ? L('Next date: ', 'أقرب موعد: ') + fmt(c.dl) + '. ' : '') + P(c.dlText), hasDocs: true, docs: P(c.docs),
+        acts: [mkAct(sv ? L('Saved', 'تم الحفظ') : L('Save scholarship', 'احفظ المنحة'), () => this.toggle('track', c.id), sv, (sv ? L('Saved: ', 'تم الحفظ: ') : L('Save: ', 'احفظ: ')) + P(c.n)),
+          mkAct(dl ? L('In tracker', 'في المتتبّع') : L('Add to tracker', 'أضف إلى المتتبّع'), () => this.toggle('deadlines', c.id), dl, (dl ? L('In tracker: ', 'في المتتبّع: ') : L('Add to tracker: ', 'أضف إلى المتتبّع: ')) + P(c.n)),
+          mkLink(L('Official page', 'الصفحة الرسمية'), c.link)] };
+    };
+    const oppCard = (o) => {
+      const sv = !!S.roadmap[o.id];
+      return { ...base, tag: P(o.type), title: P(o.t), hasWhy: true, why: P(o.rel), note: L('Check availability on the site', 'تحقق من التوفر في الموقع'),
+        rows: [rowOf(L('Related to', 'مرتبط بـ'), majorL)],
+        acts: [mkAct(sv ? L('On my roadmap', 'ضمن خارطة طريقي') : L('Save to roadmap', 'احفظ في خارطة الطريق'), () => this.toggle('roadmap', o.id), sv, (sv ? L('On roadmap: ', 'في خارطة الطريق: ') : L('Save to roadmap: ', 'احفظ في خارطة الطريق: ')) + P(o.t)), mkLink(L('Open', 'افتح'), o.link)] };
+    };
+    const tutCard = (x) => ({ ...base, tag: L('Tutor', 'مدرّس'), title: P(x.n), hasChip: true, chip: L('Sample profile', 'ملف تجريبي'), chipBg: '#FFF1C7', chipColor: '#5C3F00', note: t.sampleTag, hasSub: true, sub: P(x.f), hasWhy: true, why: P(x.b), rows: [],
+      acts: [mkAct(L('View profile', 'عرض الملف'), () => this.openModal(x.id, 'profile'), undefined, L('View profile: ', 'عرض الملف: ') + P(x.n)), mkAct(L('Sample booking page', 'صفحة حجز تجريبية'), () => this.openModal(x.id, 'book'), undefined, L('Sample booking page: ', 'صفحة حجز تجريبية: ') + P(x.n))] });
+    const fundCard = (u) => {
+      const rt = this.routesFor(u), r = this.tuRange(u);
+      const best = rt.find((c) => c.cov === 'full') || rt[0] || null;
+      let gap, gapChip, chipC;
+      if (best && best.cov === 'full') { gap = L('Tuition fully covered if you win. Check what the package says about living costs.', 'الرسوم مغطاة بالكامل عند الفوز. راجع ما تقوله الحزمة عن تكاليف المعيشة.'); gapChip = L('Full funding route', 'مسار تمويل كامل'); chipC = covColors.full; }
+      else if (best) { gap = L('Depends on the award amount. Confirm it on the official page.', 'يعتمد على مبلغ المنحة. تأكد منه في الصفحة الرسمية.'); gapChip = L('Amount to verify', 'المبلغ للتحقق'); chipC = covColors.verify; }
+      else if (r) { gap = L('Up to ', 'حتى ') + (r[0] === r[1] ? money(4 * r[1], u.cur) : money(4 * r[0], u.cur) + ' to ' + money(4 * r[1], u.cur)) + L(' in tuition over four years, with no verified funding route in the catalogue.', ' رسومًا على أربع سنوات، دون مسار تمويل مؤكد في الدليل.'); gapChip = L('Gap likely', 'فجوة محتملة'); chipC = covColors.verify; }
+      else { gap = L('Tuition is not listed here. Check the official page before planning.', 'الرسوم غير مدرجة هنا. راجع الصفحة الرسمية قبل التخطيط.'); gapChip = L('Unknown', 'غير معروف'); chipC = covColors.tuition; }
+      return { ...base, tag: P(CC[u.cc]), title: P(u.n), hasSub: true, sub: P(u.p), hasChip: true, chip: gapChip, chipBg: chipC[0], chipColor: chipC[1],
+        rows: [rowOf(L('Annual tuition', 'الرسوم السنوية'), tuText(u)), rowOf(L('Estimated 4-year tuition', 'الرسوم التقديرية لأربع سنوات'), r ? (r[0] === r[1] ? money(4 * r[0], u.cur) : money(4 * r[0], u.cur) + ' to ' + money(4 * r[1], u.cur)) : L('Unknown', 'غير معروف')),
+          rowOf(L('Funding routes', 'مسارات التمويل'), rt.length ? rt.map((c) => P(c.n) + ' (' + P(COV[c.cov]) + ')').join('; ') : L('None verified in the catalogue', 'لا يوجد مسار مؤكد في الدليل')), rowOf(L('Remaining gap', 'الفجوة المتبقية'), gap)],
+        acts: [mkAct(L('See scholarships', 'اعرض المنح'), () => this.openAssistant('sch')), mkAct(L('Open my applications', 'افتح طلباتي'), () => this.setTab('apps'))] };
+    };
+
+    const texts = {
+      greet: L('Hello, ' + first + '! I’ve reviewed your academic background, interests, and university preferences.\n\nI’ve identified several opportunities that may suit your profile. I can help you explore universities, discover scholarships, prepare for examinations, and strengthen your academic profile.\n\nWhat would you like to work on first?',
+        'مرحبًا يا ' + first + '! لقد راجعت خلفيتك الأكاديمية واهتماماتك وتفضيلاتك الجامعية.\n\nحددت عدة فرص قد تناسب ملفك. يمكنني مساعدتك في استكشاف الجامعات، واكتشاف المنح، والتحضير للاختبارات، وتقوية ملفك الأكاديمي.\n\nبماذا تحب أن نبدأ؟'),
+      uni: L('Based on your profile (' + (facts || 'no scores added yet') + ', ' + majorL + (ctry ? ', preferred: ' + ctry : '') + '), here are programmes ranked by fit. Each shows whether you meet, miss or still need to verify its requirements. Details come from official pages checked on ' + CHECKED + '; confirm before you apply.',
+        'بناءً على ملفك (' + (facts || 'لم تُضف درجات بعد') + '، ' + majorL + (ctry ? '، المفضلة: ' + ctry : '') + ') هذه برامج مرتبة بحسب الملاءمة. يوضح كل برنامج ما استوفيته وما فاتك وما يحتاج تحققًا. التفاصيل من صفحات رسمية جرى التحقق منها في ' + CHECKED + '؛ تأكد قبل التقديم.'),
+      sch: L('You chose ' + P(FUND.find((f) => f[0] === (U.funding || 'full')).slice(1)).toLowerCase() + ' funding, so fully funded routes come first. Coverage shows what the provider states; where an amount is not published, it says so. Confirm on each official page.',
+        'اخترت تمويل «' + P(FUND.find((f) => f[0] === (U.funding || 'full')).slice(1)) + '»، لذا تأتي المسارات الممولة بالكامل أولًا. تظهر التغطية كما تذكرها الجهة المانحة، وحيث لا يُنشر المبلغ يُذكر ذلك. تأكد من كل صفحة رسمية.'),
+      examAsk: L('Which examination would you like to prepare for?', 'أي اختبار تريد التحضير له؟'),
+      prof: L('Here’s a gap analysis for ' + majorL + ':\n• Show programming evidence beyond school (a course or public project)\n• Add a competition or hackathon\n• Show leadership, which scholarship panels such as Pearson look for\n\nThese opportunities address those gaps. Save the ones you want to your development roadmap.',
+        'تحليل الفجوات لتخصص ' + majorL + ':\n• أظهر دليلًا على البرمجة خارج المدرسة (دورة أو مشروع علني)\n• أضف مسابقة أو هاكاثونًا\n• أظهر القيادة، وهي ما تبحث عنه لجان المنح مثل بيرسون\n\nتعالج هذه الفرص تلك الفجوات. احفظ ما تريده في خارطة طريق التطوير.'),
+      funding: L('Here is your funding feasibility for the universities you saved (or your top matches). Where a tuition figure or award amount is not published, I say so instead of guessing.',
+        'هذه جدوى التمويل للجامعات التي حفظتها (أو أفضل ترشيحاتك). حيث لا تُنشر الرسوم أو مبلغ المنحة أقول ذلك بدل التخمين.'),
+      fallback: L('I can help with these four areas. Pick one, or ask in your own words.', 'يمكنني المساعدة في هذه المجالات الأربعة. اختر واحدًا أو اسأل بكلماتك.')
+    };
+
+    const ranked = UNI.slice().sort((a, b) => this.fitOf(b) - this.fitOf(a));
+    const schSorted = SCH.slice().sort((a, b) => ((b.cov === 'full' ? 2 : 0) + (U.countries && b.cc.some((x) => U.countries[x]) ? 1 : 0)) - ((a.cov === 'full' ? 2 : 0) + (U.countries && a.cc.some((x) => U.countries[x]) ? 1 : 0)));
+    const cardsFor = (kind, arg) => {
+      if (kind === 'uni') return ranked.map(uniCard);
+      if (kind === 'sch') return schSorted.map(schCard);
+      if (kind === 'prof') return O.map(oppCard);
+      if (kind === 'funding') { let l = ranked.filter((u) => S.short[u.id]); if (!l.length) l = ranked.slice(0, 3); return l.slice(0, 4).map(fundCard); }
+      if (kind === 'examRes') {
+        const pr = PREP[arg] || PREP.ielts;
+        const mock = { ...base, tag: L('Mock test', 'اختبار تجريبي'), title: arg.toUpperCase() + L(' official practice', ' تدريب رسمي'), hasWhy: true, why: L('Start with a timed diagnostic to find your weakest section, then build a weekly plan.', 'ابدأ باختبار تشخيصي محدد بالوقت لتعرف أضعف قسم، ثم ابنِ خطة أسبوعية.'), rows: [], acts: [mkLink(P([pr[1], pr[2]]), pr[0])] };
+        return TUT.filter((x) => x.ex === arg).map(tutCard).concat([mock]);
+      }
+      return [];
+    };
+
+    const msgs = S.chat.map((m) => {
+      const out = { align: m.r === 'user' ? 'flex-end' : 'stretch', bot: m.r === 'bot', user: m.r === 'user', text: '', hasText: false, hasOptions: false, hasChips: false, hasCards: false, cards: [], chips: [], options: [], busy: m.load ? 'true' : 'false' };
+      if (m.r === 'user') { out.text = m.k === 'choice' ? choiceLabel[m.a] : m.a; out.hasText = true; return out; }
+      out.hasText = true;
+      if (m.k === 'ai') {
+        out.text = m.load ? t.thinking : m.a;
+        if (m.show === 'examAsk') m = { k: 'examAsk' }; else if (m.show) { out.cards = cardsFor(m.show); out.hasCards = out.cards.length > 0; }
+      } else out.text = m.k === 'examRes' ? (ar ? `تحضير ${m.a.toUpperCase()}: مدرّسون تجريبيون وتدريب رسمي.` : `${m.a.toUpperCase()} preparation: sample tutors and official practice.`) : texts[m.k];
+      if (m.fb) out.text = t.fbNote + '\n\n' + out.text;
+      if (m.k === 'greet' || m.k === 'fallback') { out.hasOptions = true; out.options = options; }
+      if (['uni', 'sch', 'prof', 'funding'].includes(m.k)) { out.cards = cardsFor(m.k); out.hasCards = true; }
+      if (m.k === 'examRes') { out.cards = cardsFor('examRes', m.a); out.hasCards = true; }
+      if (m.k === 'examAsk') { out.hasChips = true; out.chips = ['sat', 'ielts', 'toefl', 'ap'].map((id) => ({ label: id.toUpperCase(), go: () => this.pickExam(id), aria: L('Prepare for ', 'التحضير لـ ') + id.toUpperCase() })); }
+      return out;
+    });
+
+    const sugDefs = [L('Which universities fit me?', 'أي الجامعات تناسبني؟'), L('What is my funding gap?', 'ما فجوة التمويل لدي؟'), L('Find fully funded scholarships', 'ابحث عن منح ممولة بالكامل'), L('Help me prepare for IELTS', 'ساعدني في التحضير لـ IELTS'), L('How can I strengthen my profile?', 'كيف أقوّي ملفي؟')];
+    const sugs = sugDefs.map((label) => ({ label, go: () => this.send(label) }));
+    const road = O.filter((o) => S.roadmap[o.id]).map((o) => ({ type: P(o.type), title: P(o.t), rel: P(o.rel), aria: L('Remove from roadmap: ', 'إزالة من خارطة الطريق: ') + P(o.t), rm: () => this.toggle('roadmap', o.id) }));
+
+    let modal = null;
+    if (S.modal) {
+      const x = TUT.find((q) => q.id === S.modal.id);
+      if (x) {
+        modal = {
+          name: P(x.n), focus: P(x.f), bio: P(x.b), isBook: S.modal.view === 'book', isProfile: S.modal.view !== 'book',
+          slots: SLOTS.map((s, i) => ({ label: P(s), pressed: S.slot === i ? 'true' : 'false', bg: S.slot === i ? '#0E1A2B' : '#FFFFFF', color: S.slot === i ? '#FFFFFF' : '#0E1A2B', go: () => this.setState({ slot: i }) })),
+          preview: () => this.setState({ bookNote: true }), book: S.bookNote,
+          toBook: () => this.setState({ modal: { id: x.id, view: 'book' }, bookNote: false }),
+          closeIt: () => this.setState({ modal: null }),
+          onKey: (e) => { if (e.key === 'Escape') this.setState({ modal: null }); }
+        };
+      }
+    }
+
+    // forms (sign-up and profile share the same field set)
+    const d = S.draft || this.draftFrom(SAMPLE_USER);
+    const opts = (list, cur) => list.map((o) => ({ v: o[0], l: P(o.slice(1)), sel: o[0] === cur ? 'selected' : undefined }));
+    const chip = (on) => ({ pressed: on ? 'true' : 'false', bg: on ? '#2347D9' : '#FFFFFF', color: on ? '#FFFFFF' : '#0E1A2B', border: on ? '#2347D9' : '#7B8CA8' });
+    const mkForm = (pre, u) => ({
+      pre, name: u.name || '', email: u.email || '', nat: u.nat || '', gpa: u.gpa || '', ielts: u.ielts || '',
+      eduOpts: opts(EDU, u.edu || 'hs-grad'), majorOpts: opts(MAJORS, u.major || 'cs'), stageOpts: opts(STAGE, u.stage || 'seek'),
+      ints: INTERESTS.map((i) => ({ label: P(i.slice(1)), ...chip(!!d.interests[i[0]]), go: () => this.togDraft('interests', i[0]) })),
+      ctrs: Object.keys(CC).map((k) => ({ label: P(CC[k]), ...chip(!!d.countries[k]), go: () => this.togDraft('countries', k) })),
+      funds: FUND.map((f) => ({ label: P(f.slice(1)), ...chip(d.funding === f[0]), go: () => this.setState({ draft: { ...d, funding: f[0] } }) }))
+    });
+    const cs = S.chatState, isA = S.tab === 'assistant';
+    const sideOn = S.side !== false;
+    const done = (n) => n;
+    const checks = [!!U.name, !!U.gpa, !!U.ielts, Object.keys(U.interests || {}).some((k) => U.interests[k]), Object.keys(U.countries || {}).some((k) => U.countries[k])];
+    return {
+      at: t, msgs, sugs, road, hasRoad: road.length > 0, noRoad: road.length === 0,
+      isAssistant: isA, showLauncher: cs === 'closed' && !isA, showWin: (cs === 'open' || cs === 'min') && !isA, winOpen: cs === 'open', winH: cs === 'open' ? 'min(620px, calc(100vh - 40px))' : 'auto',
+      openFloat: () => this.setFloat('open'), minFloat: () => this.setFloat(cs === 'min' ? 'open' : 'min'), closeFloat: () => this.setFloat('closed'),
+      minLabel: cs === 'min' ? t.restore : t.minimize, minIcon: cs === 'min' ? 'M6 14l6-6 6 6' : 'M6 10l6 6 6-6',
+      sendPage: () => this.sendFrom('in-page'), sendFloat: () => this.sendFrom('in-float'), keyPage: this.keyFrom('in-page'), keyFloat: this.keyFrom('in-float'),
+      goAssistantFull: () => this.openAssistant(), askProf: () => this.openAssistant('prof'),
+      hasModal: !!modal, modal: modal || {},
+      // auth and profile
+      showAuth: !S.authed, showApp: !!S.authed, isUp: S.authMode !== 'in', isIn: S.authMode === 'in',
+      upPressed: S.authMode !== 'in' ? 'true' : 'false', inPressed: S.authMode === 'in' ? 'true' : 'false',
+      upBg: S.authMode !== 'in' ? '#0E1A2B' : 'transparent', upColor: S.authMode !== 'in' ? '#FFFFFF' : '#0E1A2B', inBg: S.authMode === 'in' ? '#0E1A2B' : 'transparent', inColor: S.authMode === 'in' ? '#FFFFFF' : '#0E1A2B',
+      goUp: () => this.setAuthMode('up'), goIn: () => this.setAuthMode('in'),
+      authErr: S.authErr || '', hasAuthErr: !!S.authErr, af: mkForm('f-', {}), pf: mkForm('p-', U),
+      doSignUp: () => this.signUp(), doSignIn: () => this.signIn(), doSample: () => this.useSample(), doSignOut: () => this.signOut(), doSave: () => this.saveProfile(),
+      onAuthKey: (e) => { if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') { e.preventDefault(); if (S.authMode === 'in') this.signIn(); else this.signUp(); } },
+      profileMsg: S.profileMsg || '', hasProfileMsg: !!S.profileMsg, profileMsgBg: S.profileOk ? '#DDF3E4' : '#FDE2E2', profileMsgColor: S.profileOk ? '#14532D' : '#7F1D1D',
+      goProfileBtn: () => this.openProfile(), profileSel: S.tab === 'profile',
+      profBg: S.tab === 'profile' ? '#22345A' : '#162744',
+      pctDone: Math.round((checks.filter(Boolean).length / checks.length) * 100) + '%',
+      sideOn, sideOff: !sideOn, hideSide: () => this.setState({ side: false }), showSide: () => this.setState({ side: true }),
+      who: { name: U.name || '', email: U.email || '', initial: (U.name || 'A').trim().charAt(0).toUpperCase(), sampleAcc: !!U.sample },
+      sumLine: [majorL, U.gpa ? 'GPA ' + U.gpa : '', U.ielts ? 'IELTS ' + U.ielts : '', ctry].filter(Boolean).join(' · ')
+    };
+  }
   renderVals() {
     const ar = this.state.lang === 'ar';
     const L = (en, a) => (ar ? a : en);
     const S = this.state;
+    const U = this.who();
+    const P = (o) => (ar ? o[1] : o[0]);
 
     const fmt = (iso) => {
       try {
@@ -595,16 +1380,18 @@ class Component extends DCLogic {
     };
 
     const t = {
+      officialPage: L('Official page', 'الصفحة الرسمية'),
+      noApps: L('No applications tracked yet. Ask the assistant for universities, then choose Track application.', 'لا توجد طلبات متتبَّعة بعد. اطلب من المساعد ترشيح جامعات ثم اختر تتبّع الطلب.'),
       tabsLabel: L('Dashboard sections', 'أقسام لوحة التحكم'),
       langLabel: L('Language', 'اللغة'),
       moreTools: L('More tools', 'أدوات أخرى'),
-      avatar: L('S', 'ط'),
-      studentName: L('Sample student', 'طالب تجريبي'),
-      grade: L('Grade 11', 'الصف الحادي عشر'),
-      sampleData: L('Sample data', 'بيانات تجريبية'),
+      avatar: (U.name || 'A').trim().charAt(0).toUpperCase(),
+      studentName: U.name || L('Student', 'طالب'),
+      grade: P((EDU.find((e) => e[0] === U.edu) || EDU[1]).slice(1)),
+      sampleData: L('Verify on official sites', 'تحقق من المواقع الرسمية'),
 
       pathwayTitle: L('Your pathway', 'مسارك'),
-      pathwaySub: L('Stage 2 of 5: Build. Here’s what moves you forward this month.', 'المرحلة 2 من 5: البناء. هذا ما يقدّمك خلال هذا الشهر.'),
+      pathwaySub: L('Stage ' + ({ explore: 1, seek: 3, apply: 4, offer: 5 }[U.stage] || 3) + ' of 5. Here’s what moves you forward this month.', 'المرحلة ' + ({ explore: 1, seek: 3, apply: 4, offer: 5 }[U.stage] || 3) + ' من 5. هذا ما يقدّمك خلال هذا الشهر.'),
       nbsTitle: L('Your next best steps', 'خطواتك التالية الأفضل'),
       nbsSub: L('Ranked by what unlocks the most progress.', 'مرتّبة بحسب ما يحقق أكبر تقدّم.'),
       stagesLabel: L('Pathway stages', 'مراحل المسار'),
@@ -615,7 +1402,7 @@ class Component extends DCLogic {
       grade12: L('Grade 12', 'الصف 12'),
       afterOffer: L('After your offer', 'بعد القبول'),
       recTitle: L('Recommended for you', 'موصى به لك'),
-      recSub: L('Based on your interests: biomedical engineering, product design and data science.', 'بناءً على اهتماماتك: الهندسة الطبية الحيوية وتصميم المنتجات وعلم البيانات.'),
+      recSub: L('Based on your interests: ' + (INTERESTS.filter((i) => U.interests && U.interests[i[0]]).map((i) => P(i.slice(1))).join(', ') || 'add interests in your profile') + '. Check each site for dates and availability.', 'بناءً على اهتماماتك: ' + (INTERESTS.filter((i) => U.interests && U.interests[i[0]]).map((i) => P(i.slice(1))).join('، ') || 'أضف اهتماماتك في ملفك') + '. تحقق من كل موقع للمواعيد والتوفر.'),
       recRegion: L('Recommendations, scroll sideways', 'التوصيات، مرّر جانبيًا'),
       monthTitle: L('This month', 'هذا الشهر'),
       dirTitle: L('Your directions', 'اتجاهاتك'),
@@ -638,11 +1425,11 @@ class Component extends DCLogic {
       filterLabel: L('Filter applications', 'تصفية الطلبات'),
       tableLabel: L('Applications and deadlines', 'الطلبات والمواعيد النهائية'),
       colApp: L('Application', 'الطلب'), colType: L('Type', 'النوع'), colDeadline: L('Deadline', 'الموعد النهائي'), colStatus: L('Status', 'الحالة'), colNext: L('Next step', 'الخطوة التالية'),
-      dateNote: L('Sample dates. Always confirm deadlines on each university’s website.', 'التواريخ تجريبية. تأكد دائمًا من المواعيد في موقع كل جامعة.'),
+      dateNote: L('Dates marked as last published may change. Confirm on each official site.', 'المواعيد المنشورة سابقًا قد تتغير. تأكد من كل موقع رسمي.'),
 
       profileTitle: L('My profile', 'ملفي'),
       profileSub: L('Pathway AI uses this to match universities, scholarships and activities. Update it any time.', 'يستخدم Pathway AI هذه المعلومات لمطابقة الجامعات والمنح والأنشطة. يمكنك تحديثها في أي وقت.'),
-      profileLine: L('Grade 11 · [School name] · [Your country]', 'الصف الحادي عشر · [اسم المدرسة] · [بلدك]'),
+      profileLine: L('High school graduate · Computer Science applicant · [Your country]', 'خريج مرحلة ثانوية · متقدّم لعلوم الحاسوب · [بلدك]'),
       pfAbout: L('About you', 'عنك'),
       pfDest: L('Where would you like to study?', 'أين تريد أن تدرس؟'),
       pfDestHint: L('Select every country you’d consider.', 'اختر كل بلد تفكّر فيه.'),
@@ -657,11 +1444,11 @@ class Component extends DCLogic {
       pgBody: L('Master’s and PhD applicants will get the same guided path: program and funding search, supervisor outreach and statement review.', 'سيحصل المتقدمون للماجستير والدكتوراه على المسار الموجّه نفسه: البحث عن البرامج والتمويل، والتواصل مع المشرفين، ومراجعة البيانات الشخصية.'),
 
       uniPageTitle: L('Universities', 'الجامعات'),
-      uniPageSub: L('Programs matched to your directions, grades and preferred countries.', 'برامج مطابقة لاتجاهاتك ودرجاتك والبلدان التي تفضّلها.'),
+      uniPageSub: L('Programmes ranked for your profile. Facts come from official pages checked on ' + CHECKED + '.', 'برامج مرتبة لملفك. الحقائق من صفحات رسمية جرى التحقق منها في ' + CHECKED + '.'),
       countryFilter: L('Filter by country', 'تصفية حسب البلد'),
       schPageTitle: L('Scholarships', 'المنح الدراسية'),
       schPageSub: L('Funding that fits your profile, with deadlines in one place.', 'تمويل يناسب ملفك، مع المواعيد النهائية في مكان واحد.'),
-      schNote: L('Sample listings. Always check eligibility and deadlines with the scholarship provider.', 'قوائم تجريبية. تحقق دائمًا من الأهلية والمواعيد لدى الجهة المانحة.'),
+      schNote: L('Gathered from official pages on ' + CHECKED + '. Where an amount or date is not published, it says so. Always confirm with the provider.', 'جُمعت من صفحات رسمية في ' + CHECKED + '. حيث لا يُنشر مبلغ أو موعد يُذكر ذلك. تأكد دائمًا من الجهة المانحة.'),
       examPageTitle: L('Exam prep & tutors', 'الاختبارات والمدرّسون'),
       examPageSub: L('Pick an exam, follow a study plan and find a qualified tutor.', 'اختر اختبارًا، واتبع خطة دراسة، واعثر على مدرّس مؤهل.'),
       examPick: L('Choose an exam', 'اختر اختبارًا'),
@@ -676,8 +1463,8 @@ class Component extends DCLogic {
     // tabs
     const tabDefs = [
       ['pathway', L('My pathway', 'مساري')],
+      ['assistant', L('Pathway AI Assistant', 'مساعد Pathway AI')],
       ['apps', L('My applications', 'طلباتي')],
-      ['profile', L('My profile', 'ملفي')],
       ['universities', L('Universities', 'الجامعات')],
       ['scholarships', L('Scholarships', 'المنح الدراسية')],
       ['exams', L('Exam prep & tutors', 'الاختبارات والمدرّسون')],
@@ -687,6 +1474,8 @@ class Component extends DCLogic {
       const sel = S.tab === id;
       return {
         label,
+        hasIcon: id === 'assistant',
+        icon: SPARK,
         tabId: 'tab-' + id,
         panelId: 'panel-' + id,
         selected: sel ? 'true' : 'false',
@@ -722,21 +1511,15 @@ class Component extends DCLogic {
 
     // next best steps
     const steps = [
-      { n: '1', title: L('Book a first session with an IELTS tutor', 'احجز جلسة أولى مع مدرّس IELTS'), meta: L('Takes about 10 minutes', 'تستغرق نحو 10 دقائق'), action: L('Find a tutor', 'ابحث عن مدرّس'), isLink: true, isBtn: false, href: '#help' },
+      { n: '1', title: L('Ask the assistant to check your funding gap', 'اطلب من المساعد حساب فجوة التمويل'), meta: L('Compares estimated costs with matched scholarships', 'يقارن التكاليف التقديرية بالمنح المطابقة'), action: L('Open the assistant', 'افتح المساعد'), isLink: false, isBtn: true, go: () => this.openAssistant('funding') },
       { n: '2', title: L('Review your upcoming deadlines', 'راجع مواعيدك النهائية القادمة'), meta: L('Takes about 5 minutes', 'تستغرق نحو 5 دقائق'), action: L('Open my applications', 'افتح طلباتي'), isLink: false, isBtn: true, go: () => this.setTab('apps') },
-      { n: '3', title: L('Add your predicted grades to your profile', 'أضف درجاتك المتوقعة إلى ملفك'), meta: L('Improves your university matches', 'تحسّن ترشيحات جامعاتك'), action: L('Open my profile', 'افتح ملفي'), isLink: false, isBtn: true, go: () => this.setTab('profile') }
+      { n: '3', title: L('Add your programming projects to your profile', 'أضف مشاريعك البرمجية إلى ملفك'), meta: L('Improves your university matches', 'تحسّن ترشيحات جامعاتك'), action: L('Open my profile', 'افتح ملفي'), isLink: false, isBtn: true, go: () => this.setTab('profile') }
     ];
 
     // recommended
-    const recDefs = [
-      ['rc1', L('Competition', 'مسابقة'), L('Regional science olympiad', 'أولمبياد العلوم الإقليمي'), L('Builds evidence for biomedical engineering.', 'يدعم اهتمامك بالهندسة الطبية الحيوية.')],
-      ['rc2', L('Hackathon', 'هاكاثون'), L('Health-tech weekend for students', 'هاكاثون التقنية الصحية للطلاب'), L('Combines code and design.', 'يجمع بين البرمجة والتصميم.')],
-      ['rc3', L('Certification', 'شهادة'), L('Introduction to Python', 'مدخل إلى بايثون'), L('A first step toward data science.', 'خطوة أولى نحو علم البيانات.')],
-      ['rc4', L('Internship', 'تدريب'), L('Summer lab placement', 'تدريب مخبري صيفي'), L('Hands-on biology experience.', 'خبرة عملية في الأحياء.')],
-      ['rc5', L('Tutor', 'مدرّس'), L('IELTS speaking coach', 'مدرّب IELTS للمحادثة'), L('Matches your target exam.', 'يناسب اختبارك المستهدف.')]
-    ];
+    const recDefs = O.slice(0, 6).map((o) => [o.id, P(o.type), P(o.t), P(o.rel)]);
     const recs = recDefs.map(([id, type, title, why]) => {
-      const on = !!S.saved[id];
+      const on = !!S.roadmap[id];
       return {
         type, title, why,
         pressed: on ? 'true' : 'false',
@@ -746,17 +1529,17 @@ class Component extends DCLogic {
         color: on ? '#1B37AE' : '#0E1A2B',
         border: on ? '#1B37AE' : '#0E1A2B',
         fill: on ? 'currentColor' : 'none',
-        toggle: () => this.setState({ saved: { ...this.state.saved, [id]: !this.state.saved[id] } })
+        toggle: () => this.setState({ roadmap: { ...this.state.roadmap, [id]: !this.state.roadmap[id] } })
       };
     });
 
     // checklist
     const labels = [
       ['a', L('Finish the interest assessment', 'أكمل تقييم الاهتمامات')],
-      ['b', L('Pick one competition to enter', 'اختر مسابقة واحدة للمشاركة')],
-      ['c', L('Shortlist two summer courses', 'اختر دورتين صيفيتين')],
-      ['d', L('Take a diagnostic SAT or IELTS practice test', 'قدّم اختبار SAT أو IELTS تجريبيًا تشخيصيًا')],
-      ['e', L('Read the free guide: how admissions teams read a profile', 'اقرأ الدليل المجاني: كيف تقرأ لجان القبول ملفك')]
+      ['b', L('Save three universities to your tracker', 'احفظ ثلاث جامعات في متتبّعك')],
+      ['c', L('Add one scholarship deadline to your tracker', 'أضف موعد منحة واحدة إلى متتبّعك')],
+      ['d', L('Save two profile-building opportunities to your roadmap', 'احفظ فرصتين لتطوير ملفك في خارطة طريقك')],
+      ['e', L('Check your funding gap with the assistant', 'تحقق من فجوة التمويل مع المساعد')]
     ];
     const tasks = labels.map(([id, label]) => {
       const isDone = !!S.done[id];
@@ -775,13 +1558,9 @@ class Component extends DCLogic {
     const doneCount = tasks.filter((k) => k.done).length;
     const doneText = ar ? `تم إنجاز ${doneCount} من ${tasks.length}` : `${doneCount} of ${tasks.length} done`;
 
-    const directions = [L('Biomedical engineering', 'الهندسة الطبية الحيوية'), L('Product design', 'تصميم المنتجات'), L('Data science', 'علم البيانات')].map((label) => ({ label }));
+    const directions = [L('Artificial intelligence', 'الذكاء الاصطناعي'), L('Programming', 'البرمجة'), L('Mathematics', 'الرياضيات')].map((label) => ({ label }));
 
-    const unis = [
-      { country: L('Canada', 'كندا'), name: L('University of Toronto', 'جامعة تورنتو'), program: L('Biomedical engineering', 'الهندسة الطبية الحيوية'), fit: L('Strong fit', 'مناسبة جدًا'), why: L('matches biology and design', 'تناسب الأحياء والتصميم') },
-      { country: L('Netherlands', 'هولندا'), name: L('TU Delft', 'جامعة دلفت التقنية'), program: L('Industrial design engineering', 'هندسة التصميم الصناعي'), fit: L('Good fit', 'مناسبة'), why: L('matches product design', 'تناسب تصميم المنتجات') },
-      { country: L('Australia', 'أستراليا'), name: L('University of Melbourne', 'جامعة ملبورن'), program: L('Biomedicine', 'الطب الحيوي'), fit: L('Good fit', 'مناسبة'), why: L('scholarships to explore', 'منح يمكن استكشافها') }
-    ];
+    const unis = UNI.slice().sort((a, b) => this.fitOf(b) - this.fitOf(a)).slice(0, 3).map((u) => ({ country: P(CC[u.cc]), name: P(u.n), program: P(u.p), fit: this.fitOf(u) >= 90 ? L('Strong fit', 'مناسبة جدًا') : L('Good fit', 'مناسبة'), why: P(u.w) }));
 
     // applications
     const types = { uni: L('University', 'جامعة'), sch: L('Scholarship', 'منحة'), exam: L('Exam', 'اختبار') };
@@ -790,16 +1569,12 @@ class Component extends DCLogic {
       res: { label: L('Researching', 'قيد البحث'), bg: '#FFF1C7', color: '#5C3F00' },
       plan: { label: L('Planned', 'مخطط له'), bg: '#E1E8FF', color: '#1B37AE' }
     };
-    const appDefs = [
-      ['2027-02-05', 'exam', 'not', L('SAT registration', 'التسجيل في اختبار SAT'), L('Choose a test date', 'اختر موعد الاختبار')],
-      ['2027-04-20', 'exam', 'not', L('IELTS test booking', 'حجز اختبار IELTS'), L('Pick a test centre', 'اختر مركز الاختبار')],
-      ['2027-10-31', 'uni', 'res', L('University of Melbourne · Biomedicine', 'جامعة ملبورن · الطب الحيوي'), L('Check entry requirements', 'راجع شروط القبول')],
-      ['2027-12-01', 'sch', 'res', L('Merit scholarship (Toronto)', 'منحة التفوق (تورنتو)'), L('Read the eligibility rules', 'اقرأ شروط الأهلية')],
-      ['2028-01-15', 'uni', 'plan', L('University of Toronto · Biomedical engineering', 'جامعة تورنتو · الهندسة الطبية الحيوية'), L('Draft your personal statement', 'اكتب مسودة بيانك الشخصي')],
-      ['2028-01-15', 'uni', 'res', L('TU Delft · Industrial design engineering', 'جامعة دلفت التقنية · هندسة التصميم الصناعي'), L('Check portfolio requirements', 'راجع متطلبات ملف الأعمال')]
-    ];
+    const appDefs = [];
+    UNI.forEach((u) => { if (S.apps[u.id]) appDefs.push([u.dl, 'uni', 'plan', P(u.n) + ' · ' + P(u.p), L('Check entry requirements', 'راجع شروط القبول'), u.link]); });
+    SCH.forEach((c) => { if (S.deadlines[c.id]) appDefs.push([c.dl, 'sch', 'res', P(c.n), L('Read the eligibility rules', 'اقرأ شروط الأهلية'), c.link]); });
+    appDefs.sort((a, b) => (a[0] && b[0] ? (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0) : a[0] ? -1 : b[0] ? 1 : 0));
     const allRows = appDefs.map(([iso, kind, st, name, next]) => ({
-      kind, name, next, date: fmt(iso), nextAria: next + ' — ' + name,
+      kind, name, next, hasDate: !!iso, date: iso ? fmt(iso) : L('Confirm on official site', 'تأكد من الموقع الرسمي'), nextAria: next + ' — ' + name,
       type: types[kind], status: statuses[st].label, chipBg: statuses[st].bg, chipColor: statuses[st].color
     }));
     const rows = S.filter === 'all' ? allRows : allRows.filter((r) => r.kind === S.filter);
@@ -811,17 +1586,18 @@ class Component extends DCLogic {
     const showing = ar ? `عرض ${rows.length} من ${allRows.length}` : `Showing ${rows.length} of ${allRows.length}`;
 
     // profile
-    const interests = [L('Biology', 'الأحياء'), L('Design', 'التصميم'), L('Coding', 'البرمجة'), L('Robotics', 'الروبوتات')].map((label) => ({ label }));
+    const interests = [L('Artificial intelligence', 'الذكاء الاصطناعي'), L('Programming', 'البرمجة'), L('Mathematics', 'الرياضيات')].map((label) => ({ label }));
     const aboutRows = [
-      [L('Grade', 'الصف'), L('Grade 11', 'الصف الحادي عشر')],
-      [L('School', 'المدرسة'), L('[School name]', '[اسم المدرسة]')],
-      [L('Country', 'البلد'), L('[Your country]', '[بلدك]')],
-      [L('Curriculum', 'المنهج'), L('IB', 'البكالوريا الدولية (IB)')],
-      [L('Languages', 'اللغات'), L('English, Arabic', 'الإنجليزية، العربية')]
+      [L('Education', 'التعليم'), L('High school graduate', 'خريج مرحلة ثانوية')],
+      [L('GPA', 'المعدل'), '3.85 / 4.00'],
+      [L('English test', 'اختبار اللغة'), L('IELTS 7.5', 'IELTS 7.5')],
+      [L('Intended major', 'التخصص المرغوب'), L('Computer Science', 'علوم الحاسوب')],
+      [L('Funding preference', 'تفضيل التمويل'), L('Fully funded', 'ممول بالكامل')],
+      [L('Current stage', 'المرحلة الحالية'), L('Seeking undergraduate admission', 'يسعى للقبول الجامعي (بكالوريوس)')]
     ].map(([k, v]) => ({ k, v }));
     const destDefs = [
-      ['ca', L('Canada', 'كندا')], ['nl', L('Netherlands', 'هولندا')], ['au', L('Australia', 'أستراليا')],
-      ['uk', L('United Kingdom', 'المملكة المتحدة')], ['us', L('United States', 'الولايات المتحدة')], ['de', L('Germany', 'ألمانيا')]
+      ['de', L('Germany', 'ألمانيا')], ['ca', L('Canada', 'كندا')], ['ae', L('United Arab Emirates', 'الإمارات العربية المتحدة')],
+      ['uk', L('United Kingdom', 'المملكة المتحدة')], ['us', L('United States', 'الولايات المتحدة')], ['nl', L('Netherlands', 'هولندا')]
     ];
     const dests = destDefs.map(([id, label]) => {
       const on = !!S.dest[id];
@@ -832,20 +1608,13 @@ class Component extends DCLogic {
       };
     });
     const target = L('Target score: [add]', 'الدرجة المستهدفة: [أضف]');
-    const examRows = [{ k: 'SAT', v: target }, { k: 'IELTS', v: target }];
-    const activities = [L('Robotics club member', 'عضو في نادي الروبوتات'), L('School science fair finalist', 'متأهل إلى نهائي معرض العلوم المدرسي'), L('Volunteer peer tutor in biology', 'مدرّس أقران متطوع في الأحياء')].map((label) => ({ label }));
-    const todoProfile = [L('Add your predicted grades', 'أضف درجاتك المتوقعة'), L('Add target scores for SAT and IELTS', 'أضف الدرجات المستهدفة لاختباري SAT وIELTS'), L('Set a yearly tuition budget', 'حدّد ميزانية سنوية للرسوم الدراسية')].map((label) => ({ label }));
+    const examRows = [{ k: 'IELTS', v: L('7.5 (achieved)', '7.5 (محقق)') }, { k: 'SAT', v: target }];
+    const activities = [L('Programming club member (sample)', 'عضو في نادي البرمجة (تجريبي)'), L('Volunteer maths tutor (sample)', 'مدرّس رياضيات متطوع (تجريبي)'), L('Personal project: study planner app (sample)', 'مشروع شخصي: تطبيق مخطط دراسة (تجريبي)')].map((label) => ({ label }));
+    const todoProfile = [L('Add an AI or programming certification', 'أضف شهادة في الذكاء الاصطناعي أو البرمجة'), L('Enter a competition or hackathon', 'شارك في مسابقة أو هاكاثون'), L('Upload your recommendation letters', 'ارفع خطابات التوصية')].map((label) => ({ label }));
 
     // universities
-    const uniAll = [
-      ['ca', L('Canada', 'كندا'), L('University of Toronto', 'جامعة تورنتو'), L('Biomedical engineering', 'الهندسة الطبية الحيوية'), L('Strong fit', 'مناسبة جدًا'), L('matches biology and design', 'تناسب الأحياء والتصميم')],
-      ['ca', L('Canada', 'كندا'), L('McGill University', 'جامعة ماكجيل'), L('Biochemistry', 'الكيمياء الحيوية'), L('Good fit', 'مناسبة'), L('strong life sciences', 'علوم حياة قوية')],
-      ['nl', L('Netherlands', 'هولندا'), L('TU Delft', 'جامعة دلفت التقنية'), L('Industrial design engineering', 'هندسة التصميم الصناعي'), L('Good fit', 'مناسبة'), L('matches product design', 'تناسب تصميم المنتجات')],
-      ['au', L('Australia', 'أستراليا'), L('University of Melbourne', 'جامعة ملبورن'), L('Biomedicine', 'الطب الحيوي'), L('Good fit', 'مناسبة'), L('scholarships to explore', 'منح يمكن استكشافها')],
-      ['uk', L('United Kingdom', 'المملكة المتحدة'), L('Imperial College London', 'إمبريال كوليدج لندن'), L('Bioengineering', 'الهندسة الحيوية'), L('Good fit', 'مناسبة'), L('matches biomedical interest', 'تناسب اهتمامك الطبي الحيوي')],
-      ['de', L('Germany', 'ألمانيا'), L('Technical University of Munich', 'جامعة ميونخ التقنية'), L('Informatics', 'المعلوماتية'), L('Good fit', 'مناسبة'), L('fits data science', 'تناسب علم البيانات')]
-    ];
-    const uniCards = uniAll.map((u, i) => ({ cc: u[0], id: 'u' + i, country: u[1], name: u[2], program: u[3], fit: u[4], why: u[5] }))
+    const uniAll = UNI.map((u) => [u.cc, P(CC[u.cc]), P(u.n), P(u.p), this.fitOf(u) >= 90 ? L('Strong fit', 'مناسبة جدًا') : L('Good fit', 'مناسبة'), P(u.w), u.link]);
+    const uniCards = uniAll.map((u, i) => ({ cc: u[0], id: 'u' + i, country: u[1], name: u[2], program: u[3], fit: u[4], why: u[5], href: u[6] }))
       .filter((u) => S.uFilter === 'all' || u.cc === S.uFilter)
       .map((u) => {
         const on = !!S.short[u.id];
@@ -858,7 +1627,7 @@ class Component extends DCLogic {
           toggle: () => this.setState({ short: { ...this.state.short, [u.id]: !this.state.short[u.id] } })
         };
       });
-    const uFilters = [['all', L('All', 'الكل')]].concat(destDefs.filter((d) => ['ca', 'nl', 'au', 'uk', 'de'].includes(d[0]))).map(([id, label]) => {
+    const uFilters = [['all', L('All', 'الكل')]].concat(destDefs.filter((d) => ['de', 'ca', 'ae'].includes(d[0]))).map(([id, label]) => {
       const on = S.uFilter === id;
       return { label, pressed: on ? 'true' : 'false', bg: on ? '#0E1A2B' : 'transparent', color: on ? '#FFFFFF' : '#0E1A2B', go: () => this.setState({ uFilter: id }) };
     });
@@ -866,16 +1635,11 @@ class Component extends DCLogic {
     const shortlistText = ar ? `في القائمة المختصرة: ${shortCount}` : `Shortlisted: ${shortCount}`;
 
     // scholarships
-    const schAll = [
-      ['s1', L('Merit scholarship (Toronto)', 'منحة التفوق (تورنتو)'), L('Canada', 'كندا'), L('Merit-based', 'قائمة على التفوق'), '2027-12-01', L('Strong match', 'ملاءمة قوية')],
-      ['s2', L('International scholarship (Netherlands)', 'منحة دولية (هولندا)'), L('Netherlands', 'هولندا'), L('Merit-based', 'قائمة على التفوق'), '2028-02-01', L('Good match', 'ملاءمة جيدة')],
-      ['s3', L('International undergraduate scholarship (Melbourne)', 'منحة دولية للبكالوريوس (ملبورن)'), L('Australia', 'أستراليا'), L('Merit and need', 'التفوق والحاجة'), '2027-10-31', L('Good match', 'ملاءمة جيدة')],
-      ['s4', L('Need-based bursary (UK)', 'منحة قائمة على الحاجة (المملكة المتحدة)'), L('United Kingdom', 'المملكة المتحدة'), L('Need-based', 'قائمة على الحاجة'), '2028-01-15', L('Possible match', 'ملاءمة محتملة')]
-    ];
-    const schCards = schAll.map(([id, name, country, type, iso, match]) => {
+    const schAll = SCH.map((c) => [c.id, P(c.n), c.cc.map((x) => P(CC[x])).join(', '), P(COV[c.cov]), c.dl, c.base >= 85 ? L('Strong match', 'ملاءمة قوية') : L('Possible match', 'ملاءمة محتملة'), P(c.dlText), c.link]);
+    const schCards = schAll.map(([id, name, country, type, iso, match, dt, href]) => {
       const on = !!S.track[id];
       return {
-        name, country, type, match, date: fmt(iso), deadlineLabel: L('Deadline:', 'الموعد النهائي:'),
+        name, country, type, match, href, date: iso ? fmt(iso) : dt, deadlineLabel: L('Deadline:', 'الموعد النهائي:'),
         pressed: on ? 'true' : 'false',
         label: on ? L('Tracking', 'قيد التتبّع') : L('Track this scholarship', 'تتبّع هذه المنحة'),
         aria: (on ? L('Tracking: ', 'قيد التتبّع: ') : L('Track: ', 'تتبّع: ')) + name,
@@ -944,12 +1708,18 @@ class Component extends DCLogic {
     const postDone = postTasks.filter((k) => k.done).length;
     const postDoneText = ar ? `تم إنجاز ${postDone} من ${postTasks.length}` : `${postDone} of ${postTasks.length} done`;
 
+    const curStage = ({ explore: 1, seek: 3, apply: 4, offer: 5 }[U.stage] || 3);
+    const stageNames = [t.st1, t.st2, t.st3, t.st4, t.st5];
+    const stageBars = stageNames.map((name, i) => {
+      const n = i + 1;
+      return { name, w: n < curStage ? '100%' : n === curStage ? Math.round((doneCount / tasks.length) * 100) + '%' : '0%', c: n < curStage ? '#2347D9' : '#F5B82E', sub: n < curStage ? t.stDone : n === curStage ? t.youAreHere : t.upNext };
+    });
     const notify = S.notify;
 
-    const nextRow = allRows[0];
+    const nextRow = allRows.find((r) => r.hasDate) || allRows[0] || { date: '—', name: L('No tracked applications yet', 'لا توجد طلبات متتبَّعة بعد') };
 
     return {
-      t, tabs, onTabKey, tools, steps, recs, tasks, doneText, directions, unis,
+      ...this.assistantVals(L, ar, fmt, P), stageBars, noRows: allRows.length === 0, t, tabs, onTabKey, tools, steps, recs, tasks, doneText, directions, unis,
       rows, filters, showing, interests, aboutRows, dests, examRows, activities, todoProfile,
       nextDate: nextRow.date, nextName: nextRow.name,
       uniCards, uFilters, shortlistText, schCards, examChips, tutorCards, planTitle, tutorsTitle, planSteps,
@@ -962,7 +1732,7 @@ class Component extends DCLogic {
       isUniversities: S.tab === 'universities', isScholarships: S.tab === 'scholarships', isExams: S.tab === 'exams', isPost: S.tab === 'post',
       progressPct: Math.round((doneCount / tasks.length) * 100) + '%',
       isPathway: S.tab === 'pathway', isApps: S.tab === 'apps', isProfile: S.tab === 'profile',
-      goApps: () => this.setTab('apps'), goProfile: () => this.setTab('profile'),
+      goApps: () => this.setTab('apps'), goProfile: () => this.openProfile(),
       lang: ar ? 'ar' : 'en', dir: ar ? 'rtl' : 'ltr',
       setEn: () => this.pick('en'), setAr: () => this.pick('ar'),
       enPressed: ar ? 'false' : 'true', arPressed: ar ? 'true' : 'false',
